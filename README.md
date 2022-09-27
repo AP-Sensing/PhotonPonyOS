@@ -42,6 +42,8 @@ sudo rpm-ostree compose tree --repo=repo --cachedir=cache fedora-silverblue.yaml
 ostree summary --repo=repo --update
 ```
 
+You can also use the `justfile` (see [casey/just](https://github.com/casey/just)) to build both variants locally.
+
 ## Testing
 
 Instructions to test the resulting build:

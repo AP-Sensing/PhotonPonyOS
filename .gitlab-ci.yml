@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: MIT
+
+image: quay.io/fedora-ostree-desktops/buildroot
+
+stages:
+  # - validate
+  - build
+  # - installer
+
+# validate manifests:
+#   stage: validate
+#   script:
+#     - just validate
+
+build silverblue:
+  stage: build
+  script:
+    - just compose-image silverblue
+    - just upload-container silverblue
+    # - just lorax silverblue
+    # - just archive silverblue iso
+    # - just archive silverblue repo
+  artifacts:
+    paths:
+      - .buildid
+      - logs
+    expire_in: 2 week
+
+build kinoite:
+  stage: build
+  script:
+    - just compose-image kinoite
+    - just upload-container kinoite
+    # - just compose kinoite
+    # - just lorax kinoite
+    # - just archive kinoite iso
+    # - just archive kinoite repo
+  artifacts:
+    paths:
+      - .buildid
+      - logs
+    expire_in: 2 week
