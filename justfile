@@ -181,6 +181,7 @@ compose-image variant=default_variant:
     fi
 
     ${CMD} compose image ${ARGS} \
+         --label="quay.expires-after=4w" \
         "fedora-${variant}.yaml" \
         "fedora-${variant}.ociarchive" \
             |& tee "logs/${variant}_${version}_${buildid}.${timestamp}.log"
