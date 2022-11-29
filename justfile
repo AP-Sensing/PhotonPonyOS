@@ -93,7 +93,7 @@ compose variant=default_variant:
     # TODO: Pull latest build for the current release
     # ostree pull ...
 
-    version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."automatic-version-prefix"')"
+    version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."mutate-os-release"')"
 
     echo "Composing ${variant_pretty} ${version}.${buildid} ..."
     # To debug with gdb, use: gdb --args ...
@@ -166,7 +166,7 @@ compose-image variant=default_variant:
     # TODO: Pull latest build for the current release
     # ostree pull ...
 
-    version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."automatic-version-prefix"')"
+    version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."mutate-os-release"')"
 
     echo "Composing ${variant_pretty} ${version}.${buildid} ..."
     # To debug with gdb, use: gdb --args ...
@@ -286,7 +286,7 @@ lorax variant=default_variant:
         popd > /dev/null || exit 1
     fi
 
-    version_number="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."automatic-version-prefix"')"
+    version_number="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."mutate-os-release"')"
     if [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || [[ -f "fedora-rawhide.repo" ]]; then
         version_pretty="Rawhide"
         version="rawhide"
@@ -392,7 +392,7 @@ upload-container variant=default_variant:
     if [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || [[ -f "fedora-rawhide.repo" ]]; then
         version="rawhide"
     else
-        version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."automatic-version-prefix"')"
+        version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."mutate-os-release"')"
     fi
 
     image="quay.io/fedora-ostree-desktops/${variant}"
@@ -462,7 +462,7 @@ archive variant=default_variant kind="repo":
     if [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || [[ -f "fedora-rawhide.repo" ]]; then
         version="rawhide"
     else
-        version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."automatic-version-prefix"')"
+        version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."mutate-os-release"')"
     fi
 
     if [[ "${kind}" == "repo" ]]; then
