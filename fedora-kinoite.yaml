@@ -40,6 +40,9 @@ packages:
   - NetworkManager-ppp
   # Install gdb-minimal to make getting backtraces work with DrKonqi
   - gdb-minimal
+  # Testing https://pagure.io/fedora-kde/SIG/issue/109
+  - kdenetwork-filesharing
+  - samba-usershares
 
 # Make sure the following are not pulled in when Recommended by other packages
 exclude-packages:
