@@ -14,6 +14,7 @@ force_nocache := "true"
 all:
     just compose silverblue
     just compose kinoite
+    just compose sericea
     just compose vauxite
     just compose base
 
@@ -52,6 +53,9 @@ manifest variant=default_variant:
         "kinoite")
             variant_pretty="Kinoite"
             ;;
+        "sericea")
+            variant_pretty="Sericea"
+            ;;
         "vauxite")
             variant_pretty="Vauxite"
             ;;
@@ -78,6 +82,9 @@ compose variant=default_variant:
             ;;
         "kinoite")
             variant_pretty="Kinoite"
+            ;;
+        "sericea")
+            variant_pretty="Sericea"
             ;;
         "vauxite")
             variant_pretty="Vauxite"
@@ -157,6 +164,9 @@ compose-image variant=default_variant:
             ;;
         "kinoite")
             variant_pretty="Kinoite"
+            ;;
+        "sericea")
+            variant_pretty="Sericea"
             ;;
         "vauxite")
             variant_pretty="Vauxite"
@@ -283,6 +293,11 @@ lorax variant=default_variant:
             variant_pretty="Kinoite"
             volid_sub="Knt"
             ;;
+        "sericea")
+            variant_pretty="Sericea"
+            # TODO
+            # volid_sub="???"
+            ;;
         "vauxite")
             variant_pretty="Vauxite"
             volid_sub="Vxt"
@@ -401,6 +416,9 @@ upload-container variant=default_variant:
         "kinoite")
             variant_pretty="Kinoite"
             ;;
+        "sericea")
+            variant_pretty="Sericea"
+            ;;
         "vauxite")
             variant_pretty="Vauxite"
             ;;
@@ -471,6 +489,9 @@ archive variant=default_variant kind="repo":
             ;;
         "kinoite")
             variant_pretty="Kinoite"
+            ;;
+        "sericea")
+            variant_pretty="Sericea"
             ;;
         "vauxite")
             variant_pretty="Vauxite"
