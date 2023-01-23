@@ -40,3 +40,17 @@ build kinoite:
       - .buildid
       - logs
     expire_in: 2 week
+
+build vauxite:
+  stage: build
+  script:
+    - just compose-image vauxite
+    - just upload-container vauxite
+    # - just lorax vauxite
+    # - just archive vauxite iso
+    # - just archive vauxite repo
+  artifacts:
+    paths:
+      - .buildid
+      - logs
+    expire_in: 2 week
