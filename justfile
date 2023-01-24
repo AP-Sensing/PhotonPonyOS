@@ -447,9 +447,9 @@ upload-container variant=default_variant:
 
     skopeo login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" quay.io
     # Copy fully versioned tag (major version, build date/id, git commit)
-    skopeo copy "oci-archive:fedora-${variant}.ociarchive" "docker://${image}:${version}.${buildid}.${git_commit}"
+    skopeo copy --retry-times 3 "oci-archive:fedora-${variant}.ociarchive" "docker://${image}:${version}.${buildid}.${git_commit}"
     # Update "un-versioned" tag (only major version)
-    skopeo copy "docker://${image}:${version}.${buildid}.${git_commit}" "docker://${image}:${version}"
+    skopeo copy --retry-times 3 "docker://${image}:${version}.${buildid}.${git_commit}" "docker://${image}:${version}"
 
 # Make a container image with the artifacts
 archive variant=default_variant kind="repo":
