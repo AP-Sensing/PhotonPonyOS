@@ -15,6 +15,7 @@ all:
     just compose silverblue
     just compose kinoite
     just compose vauxite
+    just compose base
 
 # Basic validation to make sure the manifests are not completely broken
 validate:
@@ -54,6 +55,9 @@ manifest variant=default_variant:
         "vauxite")
             variant_pretty="Vauxite"
             ;;
+        "base")
+            variant_pretty="Base"
+            ;;
         "*")
             echo "Unknown variant"
             exit 1
@@ -77,6 +81,9 @@ compose variant=default_variant:
             ;;
         "vauxite")
             variant_pretty="Vauxite"
+            ;;
+        "base")
+            variant_pretty="Base"
             ;;
         "*")
             echo "Unknown variant"
@@ -153,6 +160,9 @@ compose-image variant=default_variant:
             ;;
         "vauxite")
             variant_pretty="Vauxite"
+            ;;
+        "base")
+            variant_pretty="Base"
             ;;
         "*")
             echo "Unknown variant"
@@ -277,6 +287,10 @@ lorax variant=default_variant:
             variant_pretty="Vauxite"
             volid_sub="Vxt"
             ;;
+        "base")
+            variant_pretty="Base"
+            volid_sub="Base"
+            ;;
         "*")
             echo "Unknown variant"
             exit 1
@@ -390,6 +404,9 @@ upload-container variant=default_variant:
         "vauxite")
             variant_pretty="Vauxite"
             ;;
+        "base")
+            variant_pretty="Base"
+            ;;
         "*")
             echo "Unknown variant"
             exit 1
@@ -457,6 +474,9 @@ archive variant=default_variant kind="repo":
             ;;
         "vauxite")
             variant_pretty="Vauxite"
+            ;;
+        "base")
+            variant_pretty="Base"
             ;;
         "*")
             echo "Unknown variant"

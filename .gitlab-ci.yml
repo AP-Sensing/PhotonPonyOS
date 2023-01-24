@@ -54,3 +54,17 @@ build vauxite:
       - .buildid
       - logs
     expire_in: 2 week
+
+build base:
+  stage: build
+  script:
+    - just compose-image base
+    - just upload-container base
+    # - just lorax base
+    # - just archive base iso
+    # - just archive base repo
+  artifacts:
+    paths:
+      - .buildid
+      - logs
+    expire_in: 2 week
