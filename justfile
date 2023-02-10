@@ -349,7 +349,7 @@ lorax variant=default_variant:
     fi
 
     # Stick to the latest stable runtime available here
-    flatpak_remote_refs="runtime/org.fedoraproject.Platform/x86_64/f36"
+    flatpak_remote_refs="runtime/org.fedoraproject.Platform/x86_64/f37"
     flatpak_apps=(
         "app/org.fedoraproject.MediaWriter/x86_64/stable"
         "app/org.gnome.Calculator/x86_64/stable"
