@@ -9,13 +9,12 @@ unified_core := "true"
 # unified_core := "false"
 force_nocache := "true"
 # force_nocache := "false"
+# The default architecture we are building for. Set by default to the system architecture
+default_arch := "$(arch)"
 
 # Default is to compose Silverblue and Kinoite
 all:
-    just compose silverblue
-    just compose kinoite
-    just compose sericea
-    just compose vauxite
+    just compose photon-pony
     just compose base
 
 # Basic validation to make sure the manifests are not completely broken
@@ -47,20 +46,8 @@ manifest variant=default_variant:
 
     variant={{variant}}
     case "${variant}" in
-        "silverblue")
-            variant_pretty="Silverblue"
-            ;;
-        "kinoite")
-            variant_pretty="Kinoite"
-            ;;
-        "sericea")
-            variant_pretty="Sericea"
-            ;;
-        "vauxite")
-            variant_pretty="Vauxite"
-            ;;
-        "base")
-            variant_pretty="Base"
+        "photon-pony")
+            variant_pretty="PhotonPonyOS"
             ;;
         "*")
             echo "Unknown variant"
@@ -77,20 +64,8 @@ compose variant=default_variant:
 
     variant={{variant}}
     case "${variant}" in
-        "silverblue")
-            variant_pretty="Silverblue"
-            ;;
-        "kinoite")
-            variant_pretty="Kinoite"
-            ;;
-        "sericea")
-            variant_pretty="Sericea"
-            ;;
-        "vauxite")
-            variant_pretty="Vauxite"
-            ;;
-        "base")
-            variant_pretty="Base"
+        "photon-pony")
+            variant_pretty="PhotonPonyOS"
             ;;
         "*")
             echo "Unknown variant"
@@ -159,20 +134,8 @@ compose-image variant=default_variant:
 
     variant={{variant}}
     case "${variant}" in
-        "silverblue")
-            variant_pretty="Silverblue"
-            ;;
-        "kinoite")
-            variant_pretty="Kinoite"
-            ;;
-        "sericea")
-            variant_pretty="Sericea"
-            ;;
-        "vauxite")
-            variant_pretty="Vauxite"
-            ;;
-        "base")
-            variant_pretty="Base"
+        "photon-pony")
+            variant_pretty="PhotonPonyOS"
             ;;
         "*")
             echo "Unknown variant"
@@ -227,8 +190,8 @@ compose-finalise:
     ostree summary --repo=repo --update
 
 # Get ostree repo log for a given variant
-log variant=default_variant:
-    ostree log --repo repo fedora/rawhide/x86_64/{{variant}}
+log variant=default_variant arch=default_arch:
+    ostree log --repo repo fedora/rawhide/{{arch}}/{{variant}}
 
 # Get the diff between two ostree commits
 diff target origin:
@@ -275,7 +238,7 @@ podman-pull:
     podman pull quay.io/fedora-ostree-desktops/buildroot
 
 # Build an ISO
-lorax variant=default_variant:
+lorax variant=default_variant arch=default_arch:
     #!/bin/bash
     set -euxo pipefail
 
@@ -283,28 +246,12 @@ lorax variant=default_variant:
     # Do not create the iso directory or lorax will fail
     mkdir -p tmp cache/lorax
 
+    arch={{arch}}
     variant={{variant}}
     case "${variant}" in
-        "silverblue")
-            variant_pretty="Silverblue"
-            volid_sub="SB"
-            ;;
-        "kinoite")
-            variant_pretty="Kinoite"
-            volid_sub="Knt"
-            ;;
-        "sericea")
-            variant_pretty="Sericea"
-            # TODO
-            # volid_sub="???"
-            ;;
-        "vauxite")
-            variant_pretty="Vauxite"
-            volid_sub="Vxt"
-            ;;
-        "base")
-            variant_pretty="Base"
-            volid_sub="Base"
+        "photon-pony")
+            variant_pretty="PhotonPonyOS"
+            volid_sub="PPOS"
             ;;
         "*")
             echo "Unknown variant"
@@ -337,8 +284,8 @@ lorax variant=default_variant:
         version_pretty="${version_number}"
         version="${version_number}"
     fi
-    source_url="https://kojipkgs.fedoraproject.org/compose/${version}/latest-Fedora-${version_pretty}/compose/Everything/x86_64/os/"
-    volid="Fedora-${volid_sub}-ostree-x86_64-${version_pretty}"
+    source_url="https://kojipkgs.fedoraproject.org/compose/${version}/latest-Fedora-${version_pretty}/compose/Everything/{{arch}}/os/"
+    volid="Fedora-${volid_sub}-ostree-{{arch}}-${version_pretty}"
 
     buildid=""
     if [[ -f ".buildid" ]]; then
@@ -347,31 +294,6 @@ lorax variant=default_variant:
         buildid="$(date '+%Y%m%d.0')"
         echo "${buildid}" > .buildid
     fi
-
-    # Stick to the latest stable runtime available here
-    flatpak_remote_refs="runtime/org.fedoraproject.Platform/x86_64/f37"
-    flatpak_apps=(
-        "app/org.fedoraproject.MediaWriter/x86_64/stable"
-        "app/org.gnome.Calculator/x86_64/stable"
-        "app/org.gnome.Calendar/x86_64/stable"
-        "app/org.gnome.Characters/x86_64/stable"
-        "app/org.gnome.Connections/x86_64/stable"
-        "app/org.gnome.Contacts/x86_64/stable"
-        "app/org.gnome.Evince/x86_64/stable"
-        "app/org.gnome.Extensions/x86_64/stable"
-        "app/org.gnome.Logs/x86_64/stable"
-        "app/org.gnome.Maps/x86_64/stable"
-        "app/org.gnome.NautilusPreviewer/x86_64/stable"
-        "app/org.gnome.TextEditor/x86_64/stable"
-        "app/org.gnome.Weather/x86_64/stable"
-        "app/org.gnome.baobab/x86_64/stable"
-        "app/org.gnome.clocks/x86_64/stable"
-        "app/org.gnome.eog/x86_64/stable"
-        "app/org.gnome.font-viewer/x86_64/stable"
-    )
-    for ref in ${flatpak_refs[@]}; do
-        flatpak_remote_refs+=" ${ref}"
-    done
 
     pwd="$(pwd)"
 
@@ -383,7 +305,7 @@ lorax variant=default_variant:
         --variant="${variant_pretty}" \
         --nomacboot \
         --isfinal \
-        --buildarch=x86_64 \
+        --buildarch=${arch} \
         --volid="${volid}" \
         --logfile=${pwd}/logs/lorax.log \
         --tmp=${pwd}/tmp \
@@ -391,17 +313,13 @@ lorax variant=default_variant:
         --rootfs-size=8 \
         --add-template=${pwd}/fedora-lorax-templates/ostree-based-installer/lorax-configure-repo.tmpl \
         --add-template=${pwd}/fedora-lorax-templates/ostree-based-installer/lorax-embed-repo.tmpl \
-        --add-template=${pwd}/fedora-lorax-templates/ostree-based-installer/lorax-embed-flatpaks.tmpl \
         --add-template-var=ostree_install_repo=file://${pwd}/repo \
         --add-template-var=ostree_update_repo=file://${pwd}/repo \
         --add-template-var=ostree_osname=fedora \
         --add-template-var=ostree_oskey=fedora-${version_number}-primary \
         --add-template-var=ostree_contenturl=mirrorlist=https://ostree.fedoraproject.org/mirrorlist \
-        --add-template-var=ostree_install_ref=fedora/${version}/x86_64/${variant} \
-        --add-template-var=ostree_update_ref=fedora/${version}/x86_64/${variant} \
-        --add-template-var=flatpak_remote_name=fedora \
-        --add-template-var=flatpak_remote_url=oci+https://registry.fedoraproject.org \
-        --add-template-var=flatpak_remote_refs="${flatpak_remote_refs}" \
+        --add-template-var=ostree_install_ref=fedora/${version}/${arch}/${variant} \
+        --add-template-var=ostree_update_ref=fedora/${version}/${arch}/${variant} \
         ${pwd}/iso/linux
 
 upload-container variant=default_variant:
@@ -410,20 +328,8 @@ upload-container variant=default_variant:
 
     variant={{variant}}
     case "${variant}" in
-        "silverblue")
-            variant_pretty="Silverblue"
-            ;;
-        "kinoite")
-            variant_pretty="Kinoite"
-            ;;
-        "sericea")
-            variant_pretty="Sericea"
-            ;;
-        "vauxite")
-            variant_pretty="Vauxite"
-            ;;
-        "base")
-            variant_pretty="Base"
+        "photon-pony")
+            variant_pretty="PhotonPonyOS"
             ;;
         "*")
             echo "Unknown variant"
@@ -468,6 +374,10 @@ upload-container variant=default_variant:
     skopeo copy --retry-times 3 "oci-archive:fedora-${variant}.ociarchive" "docker://${image}:${version}.${buildid}.${git_commit}"
     # Update "un-versioned" tag (only major version)
     skopeo copy --retry-times 3 "docker://${image}:${version}.${buildid}.${git_commit}" "docker://${image}:${version}"
+    if [[ "${variant}" == "kinoite-nightly" ]] || [[ "${variant}" == "kinoite-beta" ]]; then
+        # Update latest tag for kinoite-nightly only
+        skopeo copy --retry-times 3 "docker://${image}:${version}.${buildid}.${git_commit}" "docker://${image}:latest"
+    fi
 
 # Make a container image with the artifacts
 archive variant=default_variant kind="repo":
@@ -484,20 +394,8 @@ archive variant=default_variant kind="repo":
 
     variant={{variant}}
     case "${variant}" in
-        "silverblue")
-            variant_pretty="Silverblue"
-            ;;
-        "kinoite")
-            variant_pretty="Kinoite"
-            ;;
-        "sericea")
-            variant_pretty="Sericea"
-            ;;
-        "vauxite")
-            variant_pretty="Vauxite"
-            ;;
-        "base")
-            variant_pretty="Base"
+        "photon-pony")
+            variant_pretty="PhotonPonyOS"
             ;;
         "*")
             echo "Unknown variant"

@@ -162,15 +162,7 @@ if (n_manifest_new > 0 or n_comps_new > 0) and args.save:
     write_manifest(base_pkgs_path, manifest_packages)
 
 # List of comps groups used for each desktop
-desktops_comps_groups = {
-    "gnome": ["gnome-desktop"],
-    "kde": ["kde-desktop"],
-    "xfce": ["xfce-desktop"],
-    "lxqt": ["lxqt-desktop"],
-    "deepin": ["deepin-desktop"],
-    "mate": ["mate-desktop"],
-    "sway": ["swaywm", "swaywm-extended"],
-}
+desktops_comps_groups = {}
 
 # Generate treefiles for all desktops
 for desktop, groups in desktops_comps_groups.items():
