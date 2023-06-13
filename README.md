@@ -16,7 +16,7 @@ sudo dnf install just ostree rpm-ostree lorax
 ```bash
 git clone https://github.com/AP-Sensing/PhotonPonyOS.git
 cd PhotonPonyOS
-sudo just compose-image photon-pony
+sudo just compose photon-pony
 sudo just lorax photon-pony
 ```
  
