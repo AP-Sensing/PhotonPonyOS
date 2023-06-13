@@ -54,7 +54,7 @@ check-groups:
   type: file
   filename: group
 
-default_target: graphical.target
+default_target: multi-user.target
 
 packages-aarch64:
   - grub2-efi
