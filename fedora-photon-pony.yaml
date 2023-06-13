@@ -1,3 +1,5 @@
+# Treefile documentation: https://rpm-ostree.readthedocs.io/en/stable/manual/treefile/
+
 include: fedora-common-ostree.yaml
 ref: fedora/38/${basearch}/photon-pony
 rojig:
@@ -25,7 +27,20 @@ packages:
   - htop
   - btop
   - nginx
+  # PHotonPonyOS specific packages
+  - ppos-repos
+  - ppos-repos-ostree
 
 repos:
   - fedora-38
   - fedora-38-updates
+  - ppos-38
+  - ppos-noarch-38
+
+units:
+  - nginx.service
+  - NetworkManager.service
+  - firewalld.service
+  - sshd.service
+
+documentation: false

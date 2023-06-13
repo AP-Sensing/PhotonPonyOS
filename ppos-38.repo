@@ -1,0 +1,9 @@
+[ppos-38]
+name=AP Sensing
+baseurl=http://rocky1.bbn.apsensing.com/ppos-repo/38/$basearch
+enabled=1
+skip_if_unavailable=False
+metadata_expire=7d
+gpgcheck=0
+repo_gpgcheck=0
+# gpgkey=http://rocky1.bbn.apsensing.com/ppos-repo/38/RPM-GPG-KEY-ppos-38-primary
