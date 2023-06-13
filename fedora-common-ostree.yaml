@@ -29,15 +29,9 @@ packages:
   - toolbox
   # Provides terminal tools like clear, reset, tput, and tset
   - ncurses
-  # Flatpak support
-  - flatpak
-  - xdg-desktop-portal
   # HFS filesystem tools for Apple hardware
   # See https://github.com/projectatomic/rpm-ostree/issues/1380
   - hfsplus-tools
-  # Contains default ostree remote config to be used on client's
-  # system for fetching ostree update
-  - fedora-repos-ostree
   # the archive repo for more reliable package layering
   # https://github.com/coreos/fedora-coreos-tracker/issues/400
   - fedora-repos-archive
