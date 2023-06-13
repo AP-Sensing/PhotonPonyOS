@@ -7,8 +7,8 @@ default_variant := "silverblue"
 # Default to unified compose now that it works for Silverblue & Kinoite builds
 unified_core := "true"
 # unified_core := "false"
-force_nocache := "true"
-# force_nocache := "false"
+# force_nocache := "true"
+force_nocache := "false"
 # The default architecture we are building for. Set by default to the system architecture
 default_arch := "$(arch)"
 
