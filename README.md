@@ -5,7 +5,7 @@ The instructions are for building the boot iso image that contains the [Anaconda
 
 ### Requirements
 
-Requires a up to date Fedora >= 38.
+Requires an up to date Fedora >= 38.
 
 ```bash
 sudo dnf install just ostree rpm-ostree lorax
