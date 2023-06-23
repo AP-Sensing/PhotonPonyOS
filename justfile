@@ -321,6 +321,8 @@ lorax variant=default_variant arch=default_arch:
         --add-template-var=ostree_install_ref=fedora/${version}/${arch}/${variant} \
         --add-template-var=ostree_update_ref=fedora/${version}/${arch}/${variant} \
         ${pwd}/iso/linux
+    
+    cp iso/linux/images/boot.iso iso/Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso
 
 upload-container variant=default_variant:
     #!/bin/bash
