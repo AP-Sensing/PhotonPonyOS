@@ -38,6 +38,7 @@ comps-sync:
     default_variant={{default_variant}}
     version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${default_variant}.yaml | jq -r '."automatic-version-prefix"')"
     ./comps-sync.py --save fedora-comps/comps-f${version}.xml.in
+    just fix-ownership
 
 # Output the processed manifest for a given variant (defaults to Silverblue)
 manifest variant=default_variant:
@@ -56,6 +57,7 @@ manifest variant=default_variant:
     esac
 
     rpm-ostree compose tree --print-only --repo=repo fedora-{{variant}}.yaml
+    just fix-ownership
 
 # Compose a specific variant of Fedora (defaults to Silverblue)
 compose variant=default_variant:
@@ -126,6 +128,7 @@ compose variant=default_variant:
     fi
 
     ostree summary --repo=repo --update
+    just fix-ownership
 
 # Compose an OCI image
 compose-image variant=default_variant:
@@ -188,6 +191,7 @@ compose-finalise:
         sudo chown --recursive "$(id --user --name):$(id --group --name)" repo cache
     fi
     ostree summary --repo=repo --update
+    just fix-ownership
 
 # Get ostree repo log for a given variant
 log variant=default_variant arch=default_arch:
@@ -323,6 +327,7 @@ lorax variant=default_variant arch=default_arch:
         ${pwd}/iso/linux
     
     cp iso/linux/images/boot.iso iso/Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso
+    just fix-ownership
 
 upload-container variant=default_variant:
     #!/bin/bash
@@ -380,6 +385,7 @@ upload-container variant=default_variant:
         # Update latest tag for kinoite-nightly only
         skopeo copy --retry-times 3 "docker://${image}:${version}.${buildid}.${git_commit}" "docker://${image}:latest"
     fi
+    just fix-ownership
 
 # Make a container image with the artifacts
 archive variant=default_variant kind="repo":
@@ -467,3 +473,11 @@ archive variant=default_variant kind="repo":
 
     buildah login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" quay.io
     buildah push "${commit}" "docker://${image}:${version}.${buildid}.${git_commit}.${kind}"
+    just fix-ownership
+
+fix-ownership:
+    #!/bin/bash
+    set -euxo pipefail
+
+    if [ $SUDO_USER ]; then user="$SUDO_USER"; else user="$(whoami)"; fi
+    chown -R ${user}:${user} .
