@@ -27,13 +27,47 @@ packages:
   - htop
   - btop
   - nginx
-  # PHotonPonyOS specific packages
+  # PhotonPonyOS specific packages
   - ppos-repos
   - ppos-repos-ostree
   - aps-root-cert
+  - opalkelly
+  - dib
+  - spcm4
   # Needs to be installed after the fact since this package has broken post install requirements.
   # More: https://discussion.fedoraproject.org/t/rpm-ostree-compose-including-akmods-rpm/84624/1
   # - spcm4-akmod
+  # Misc dev dependencies
+  - python3
+  - python3-pip
+  - python3-devel
+  - git
+  - clang
+  - clang-tools-extra
+  - gcc
+  - gdb
+  - make
+  - libasan
+  - libubsan
+  - liblsan
+  - libtsan
+  - cmake
+  - gcovr
+  - pigz
+  - cppcheck
+  - grpc-plugins
+  - grpc-devel
+  - abseil-cpp-devel
+  - soci-devel
+  - libudev-devel
+  - dotnet-sdk-6.0
+  - doxygen plantuml
+  - nuget
+  - dbus
+  - dbus-devel
+  - NetworkManager
+  - procps-ng
+  - conan
 
 repos:
   - fedora-38
