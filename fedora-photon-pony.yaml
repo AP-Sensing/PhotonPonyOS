@@ -26,14 +26,16 @@ packages:
   - gcc
   - htop
   - btop
-  - nginx
   # PhotonPonyOS specific packages
   - ppos-repos
   - ppos-repos-ostree
   - aps-root-cert
   - opalkelly
   - dib
-  - spcm4
+  # - spcm4
+  - aps-nginx
+  - aps-frontend
+  # - aps-http-gateway
   # Needs to be installed after the fact since this package has broken post install requirements.
   # More: https://discussion.fedoraproject.org/t/rpm-ostree-compose-including-akmods-rpm/84624/1
   # - spcm4-akmod

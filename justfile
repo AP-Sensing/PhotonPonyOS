@@ -302,7 +302,7 @@ lorax variant=default_variant arch=default_arch:
     pwd="$(pwd)"
 
     lorax \
-        --product=Fedora \
+        --product=PhotonPonyOS \
         --version=${version_pretty} \
         --release=${buildid} \
         --source="${source_url}" \
@@ -319,15 +319,20 @@ lorax variant=default_variant arch=default_arch:
         --add-template=${pwd}/fedora-lorax-templates/ostree-based-installer/lorax-embed-repo.tmpl \
         --add-template-var=ostree_install_repo=file://${pwd}/repo \
         --add-template-var=ostree_update_repo=file://${pwd}/repo \
-        --add-template-var=ostree_osname=fedora \
+        --add-template-var=ostree_osname=ppos \
         --add-template-var=ostree_oskey=fedora-${version_number}-primary \
         --add-template-var=ostree_contenturl=mirrorlist=https://ostree.fedoraproject.org/mirrorlist \
         --add-template-var=ostree_install_ref=fedora/${version}/${arch}/${variant} \
         --add-template-var=ostree_update_ref=fedora/${version}/${arch}/${variant} \
         ${pwd}/iso/linux
     
-    cp iso/linux/images/boot.iso iso/Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso
+    just kickstart iso/linux/images/boot.iso iso/Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso
     just fix-ownership
+
+kickstart inputIso outputIso:
+    #!/bin/bash
+    set -euxo pipefail
+    mkksiso $(pwd)/ppos.ks {{inputIso}} {{outputIso}}
 
 upload-container variant=default_variant:
     #!/bin/bash
