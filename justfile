@@ -326,7 +326,8 @@ lorax variant=default_variant arch=default_arch:
         --add-template-var=ostree_update_ref=fedora/${version}/${arch}/${variant} \
         ${pwd}/iso/linux
     
-    just kickstart iso/linux/images/boot.iso iso/Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso
+    mv iso/linux/images/boot.iso iso/Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso
+    just kickstart iso/Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso iso/KS-Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso
     just fix-ownership
 
 kickstart inputIso outputIso:
