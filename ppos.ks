@@ -45,6 +45,7 @@ btrfs / --subvol --name=root LABEL=photonponyos
 btrfs /home --subvol --name=home LABEL=photonponyos
 btrfs /opt/webcache --subvol --name=opt_webcache LABEL=photonponyos
 btrfs /opt --subvol --name=opt LABEL=photonponyos
+btrfs /usr/local --subvol --name=usr_local LABEL=photonponyos
 
 # System timezone
 timezone Europe/Berlin --utc
