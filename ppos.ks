@@ -36,8 +36,15 @@ firstboot --disable
 
 # Partition clearing information
 ignoredisk --only-use=vda
-autopart
 clearpart --none --initlabel
+part /boot/efi --fstype="efi" --ondisk=vda --size=600 --fsoptions="umask=0077,shortname=winnt"
+part /boot --fstype="ext4" --ondisk=vda --size=1024
+part btrfs.114 --fstype="btrfs" --ondisk=vda --grow --maxsize=10000000000000 # Some really large value since we want the partition to take all left over space.
+btrfs none --label=photonponyos --data=single btrfs.114
+btrfs / --subvol --name=root LABEL=photonponyos
+btrfs /home --subvol --name=home LABEL=photonponyos
+btrfs /opt/webcache --subvol --name=opt_webcache LABEL=photonponyos
+btrfs /opt --subvol --name=opt LABEL=photonponyos
 
 # System timezone
 timezone Europe/Berlin --utc
