@@ -12,10 +12,10 @@ force_nocache := "false"
 # The default architecture we are building for. Set by default to the system architecture
 default_arch := "$(arch)"
 
-# Default is to compose Silverblue and Kinoite
+# Default is to compose PhotonPonyOS and PhotonPonyOSBase
 all:
     just compose photon-pony
-    just compose base
+    just compose photon-pony-base
 
 # Basic validation to make sure the manifests are not completely broken
 validate:
@@ -49,6 +49,9 @@ manifest variant=default_variant:
     case "${variant}" in
         "photon-pony")
             variant_pretty="PhotonPonyOS"
+            ;;
+        "photon-pony-base")
+            variant_pretty="PhotonPonyOSBase"
             ;;
         "*")
             echo "Unknown variant"
@@ -141,6 +144,9 @@ compose variant=default_variant:
         "photon-pony")
             variant_pretty="PhotonPonyOS"
             ;;
+        "photon-pony-base")
+            variant_pretty="PhotonPonyOSBase"
+            ;;
         "*")
             echo "Unknown variant"
             exit 1
@@ -168,7 +174,7 @@ compose variant=default_variant:
     echo "Composing ${variant_pretty} ${version}.${buildid} ..."
     # To debug with gdb, use: gdb --args ...
 
-    ARGS="--repo=repo --cachedir=cache"
+    ARGS="--repo=repo --layer-repo=repo --cachedir=cache"
     if [[ {{unified_core}} == "true" ]]; then
         ARGS+=" --unified-core"
     else
@@ -211,6 +217,9 @@ compose-image variant=default_variant:
     case "${variant}" in
         "photon-pony")
             variant_pretty="PhotonPonyOS"
+            ;;
+        "photon-pony-base")
+            variant_pretty="PhotonPonyOSBase"
             ;;
         "*")
             echo "Unknown variant"
@@ -329,6 +338,10 @@ lorax variant=default_variant arch=default_arch:
             variant_pretty="PhotonPonyOS"
             volid_sub="PPOS"
             ;;
+        "photon-pony-base")
+            variant_pretty="PhotonPonyOSBase"
+            volid_sub="PPOSBase"
+            ;;
         "*")
             echo "Unknown variant"
             exit 1
@@ -416,6 +429,9 @@ upload-container variant=default_variant:
         "photon-pony")
             variant_pretty="PhotonPonyOS"
             ;;
+        "photon-pony-base")
+            variant_pretty="PhotonPonyOSBase"
+            ;;
         "*")
             echo "Unknown variant"
             exit 1
@@ -482,6 +498,9 @@ archive variant=default_variant kind="repo":
     case "${variant}" in
         "photon-pony")
             variant_pretty="PhotonPonyOS"
+            ;;
+        "photon-pony-base")
+            variant_pretty="PhotonPonyOSBase"
             ;;
         "*")
             echo "Unknown variant"
