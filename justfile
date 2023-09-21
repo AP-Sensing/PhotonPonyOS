@@ -59,7 +59,7 @@ manifest variant=default_variant:
     rpm-ostree compose tree --print-only --repo=repo fedora-{{variant}}.yaml
     just fix-ownership
 
-sign-repo variant=default_variant gpg_Key="":
+sign-repo variant=default_variant gpg_Key="" repo="repo":
     #!/bin/bash
     set -euxo pipefail
 
@@ -67,11 +67,12 @@ sign-repo variant=default_variant gpg_Key="":
     if [ $SUDO_USER ]; then REAL_USER="$SUDO_USER"; else REAL_USER="$(whoami)"; fi
 
     # Get the latest commit
-    ref="$(rpm-ostree compose tree --print-only --repo=repo fedora-{{variant}}.yaml | jq -r '.ref')"
-    commit="$(ostree log --repo=repo $ref | grep 'commit' | sed 's/commit //g')"
+    repo={{repo}}
+    ref="$(rpm-ostree compose tree --print-only --repo=${repo} fedora-{{variant}}.yaml | jq -r '.ref')"
+    commit="$(ostree log --repo=${repo} $ref | grep '^commit' | sed 's/commit //g')"
 
     # Sign
-    ostree gpg-sign --repo=repo $commit {{gpg_Key}} --gpg-homedir=/home/$REAL_USER/.gnupg/
+    ostree gpg-sign --repo=${repo} $commit {{gpg_Key}} --gpg-homedir=/home/$REAL_USER/.gnupg/
 
 sign-iso variant=default_variant gpg_Key="":
     #!/bin/bash
@@ -95,6 +96,32 @@ sign-all variant=default_variant gpg_Key="":
 
     just sign-repo {{variant}} {{gpg_Key}}
     just sign-iso {{variant}} {{gpg_Key}}
+
+export-release variant=default_variant gpg_Key="":
+    #!/bin/bash
+    set -euxo pipefail
+
+    variant={{variant}}
+    ref="$(rpm-ostree compose tree --print-only --repo=repo fedora-{{variant}}.yaml | jq -r '.ref')"
+    version=$(ostree log --repo=repo ${ref} | grep '^Version:' | head -n 1 | sed 's/Version: //g' | tr '[:blank:]' '_')
+    output_repo_path="release/${version}"
+    
+    # Prepare the output directory
+    rm -rf ${output_repo_path}*
+    mkdir -p ${output_repo_path}
+    ostree init --repo=${output_repo_path} --mode=archive
+
+    # Create local copy
+    ostree pull-local --repo=${output_repo_path} -v repo ${ref}
+
+    # Sign the resulting commit/repo
+    just sign-repo {{variant}} {{gpg_Key}} ${output_repo_path}
+
+    # Compress the result
+    pushd release
+    # Set to best compression since it does not change anything in the result since most of the parts are already compressed anyway
+    zip -r -q -9 ${version}.zip ${version}
+    popd
 
 # Compose a specific variant of Fedora (defaults to Silverblue)
 compose variant=default_variant:
