@@ -59,7 +59,7 @@ manifest variant=default_variant:
     rpm-ostree compose tree --print-only --repo=repo fedora-{{variant}}.yaml
     just fix-ownership
 
-sign-repo variant=default_variant gpg_Key="" repo="repo":
+sign-repo variant=default_variant gpg_key="" repo="repo":
     #!/bin/bash
     set -euxo pipefail
 
@@ -69,12 +69,20 @@ sign-repo variant=default_variant gpg_Key="" repo="repo":
     # Get the latest commit
     repo={{repo}}
     ref="$(rpm-ostree compose tree --print-only --repo=${repo} fedora-{{variant}}.yaml | jq -r '.ref')"
-    commit="$(ostree log --repo=${repo} $ref | grep '^commit' | sed 's/commit //g')"
+    commits="$(ostree log --repo=${repo} $ref | grep '^commit' | sed 's/commit //g')"
+    commitsArr=($commits)
+
+    # Sign all commits
+    for commit in "${commitsArr[@]}"
+    do
+        ostree gpg-sign --gpg-homedir=/home/$REAL_USER/.gnupg/ --repo=repo "${commit}" '{{gpg_key}}'
+        echo "Commit '${commit}' signed."
+    done
 
     # Sign
-    ostree gpg-sign --repo=${repo} $commit {{gpg_Key}} --gpg-homedir=/home/$REAL_USER/.gnupg/
+    ostree gpg-sign --repo=${repo} $commit {{gpg_key}} --gpg-homedir=/home/$REAL_USER/.gnupg/
 
-sign-iso variant=default_variant gpg_Key="":
+sign-iso variant=default_variant gpg_key="":
     #!/bin/bash
     set -euxo pipefail
 
@@ -86,18 +94,18 @@ sign-iso variant=default_variant gpg_Key="":
     do
         RAW_NAME="$(basename $i -s)"
         rm -rf $RAW_NAME.sig
-        GNUPGHOME=/home/$REAL_USER/.gnupg/ gpg --output $RAW_NAME.sig --sign --local-user $REAL_USER --default-key {{gpg_Key}} $i
+        GNUPGHOME=/home/$REAL_USER/.gnupg/ gpg --output $RAW_NAME.sig --sign --local-user $REAL_USER --default-key {{gpg_key}} $i
     done
     popd
 
-sign-all variant=default_variant gpg_Key="":
+sign-all variant=default_variant gpg_key="":
     #!/bin/bash
     set -euxo pipefail
 
-    just sign-repo {{variant}} {{gpg_Key}}
-    just sign-iso {{variant}} {{gpg_Key}}
+    just sign-repo {{variant}} {{gpg_key}}
+    just sign-iso {{variant}} {{gpg_key}}
 
-export-release variant=default_variant gpg_Key="":
+export-release variant=default_variant gpg_key="":
     #!/bin/bash
     set -euxo pipefail
 
@@ -115,7 +123,7 @@ export-release variant=default_variant gpg_Key="":
     ostree pull-local --repo=${output_repo_path} -v repo ${ref}
 
     # Sign the resulting commit/repo
-    just sign-repo {{variant}} {{gpg_Key}} ${output_repo_path}
+    just sign-repo {{variant}} {{gpg_key}} ${output_repo_path}
 
     # Compress the result
     pushd release
