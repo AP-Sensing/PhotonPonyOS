@@ -7,8 +7,7 @@ rojig:
   summary: "PhotonPonyOSBase"
   license: GPLv3
 packages:
-  # - fedora-release-silverblue
-  - PPOS-release
+  - fedora-release-silverblue
   - gvfs-afc
   - gvfs-afp
   - gvfs-archive
