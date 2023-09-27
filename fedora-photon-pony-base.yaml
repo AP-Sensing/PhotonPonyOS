@@ -1,10 +1,10 @@
 # Treefile documentation: https://rpm-ostree.readthedocs.io/en/stable/manual/treefile/
 
 include: fedora-common-ostree.yaml
-ref: fedora/38/${basearch}/photon-pony
+ref: fedora/38/${basearch}/photon-pony-base
 rojig:
-  name: fedora-photon-pony
-  summary: "PhotonPonyOS"
+  name: fedora-photon-pony-base
+  summary: "PhotonPonyOSBase"
   license: GPLv3
 packages:
   - fedora-release-silverblue
@@ -30,11 +30,6 @@ packages:
   - ppos-repos
   - ppos-repos-ostree
   - aps-root-cert
-  - opalkelly
-  - dib
-  - aps-frontend
-  - aps-http-gateway
-  - aps-botdr-backend
 
 repos:
   - fedora-38
@@ -43,7 +38,6 @@ repos:
   - ppos-noarch-38
 
 units:
-  - nginx.service
   - NetworkManager.service
   - firewalld.service
   - sshd.service
