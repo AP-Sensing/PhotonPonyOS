@@ -19,6 +19,7 @@ grep -E '^dialout:' /usr/lib/group >> /etc/group
 
 # Keyboard layouts
 keyboard --vckeymap=de --xlayouts='de'
+
 # System language
 lang en_US.UTF-8
 
@@ -32,27 +33,30 @@ ostreesetup --osname="ppos" --remote="ppos-compose" --url="file:///ostree/repo" 
 firstboot --disable
 
 # Ask for network configuration
-# network --device=eth0 --bootproto=query
+network  --bootproto=static --device=eno2 --gateway=10.0.0.1 --ip=10.0.0.62 --nameserver=10.0.0.1 --netmask=255.255.255.0 --ipv6=auto --no-activate
+network  --hostname=n62-ppos
 
 # Partition clearing information
-ignoredisk --only-use=vda
+ignoredisk --only-use=nvme0n1
 clearpart --none --initlabel
-part /boot/efi --fstype="efi" --ondisk=vda --size=600 --fsoptions="umask=0077,shortname=winnt"
-part /boot --fstype="ext4" --ondisk=vda --size=1024
-part btrfs.114 --fstype="btrfs" --ondisk=vda --grow --maxsize=10000000000000 # Some really large value since we want the partition to take all left over space.
-btrfs none --label=photonponyos --data=single btrfs.114
-btrfs / --subvol --name=root LABEL=photonponyos
-btrfs /home --subvol --name=home LABEL=photonponyos
-btrfs /opt/webcache --subvol --name=opt_webcache LABEL=photonponyos
-btrfs /opt --subvol --name=opt LABEL=photonponyos
-btrfs /usr/local --subvol --name=usr_local LABEL=photonponyos
+# Disk partitioning information
+part /boot/efi --fstype="efi" --ondisk=nvme0n1 --size=600 --fsoptions="umask=0077,shortname=winnt"
+part /boot --fstype="ext4" --ondisk=nvme0n1 --size=1024
+part btrfs.165 --fstype="btrfs" --ondisk=nvme0n1 --size=1906104
+btrfs none --label=photonponyos_fedora --data=single btrfs.165
+btrfs /opt --subvol --name=opt LABEL=photonponyos_fedora
+btrfs /home --subvol --name=home LABEL=photonponyos_fedora
+btrfs /usr/local --subvol --name=usr_local LABEL=photonponyos_fedora
+btrfs / --subvol --name=root LABEL=photonponyos_fedora
+btrfs /var/lib/aps/dts --subvol --name=var_lib_aps_dts LABEL=photonponyos_fedora
+btrfs /opt/webcache --subvol --name=opt_webcache LABEL=photonponyos_fedora
 
 # System timezone
-timezone Europe/Berlin --utc
+timezone Etc/UCT --utc
 
 #Root password
 rootpw --lock
-user --groups=wheel --name=fabian --password=$y$j9T$0EF1wDrjYvNDtiG1vc8AKH4e$8lIjOhWZlgHy/7jZtksK9dYxXUECxWDRP6ZpJg2BtpC --iscrypted --gecos="fabian"
+user --groups=wheel --name=dts_admin --password=$y$j9T$8nlLGisEdGIKHytfpkv0pB90$YBch7wZNtEkG57IIv/nhzUqgodILbiYbMFtySk26ay1 --iscrypted --gecos="dts_admin"
 
 # Make sure SELinux is enabled
 selinux --enforcing
