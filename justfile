@@ -3,7 +3,7 @@
 # infrastructure are run in Pungi.
 
 # Set a default for some recipes
-default_variant := "silverblue"
+default_variant := "photon-pony"
 # Default to unified compose now that it works for Silverblue & Kinoite builds
 unified_core := "true"
 # unified_core := "false"
