@@ -13,9 +13,18 @@ force_nocache := "false"
 default_arch := "$(arch)"
 
 # Default is to compose PhotonPonyOS and PhotonPonyOSBase
-all:
+all gpg_key="":
     just compose photon-pony
+    just lorax photon-pony
+    just export-release photon-pony {{gpg_key}}
+    just sign-all photon-pony {{gpg_key}}
+
     just compose photon-pony-base
+    just lorax photon-pony-base
+    just export-release photon-pony-base {{gpg_key}}
+    just sign-all photon-pony-base {{gpg_key}}
+
+    just fix-ownership
 
 # Basic validation to make sure the manifests are not completely broken
 validate:
@@ -85,7 +94,7 @@ sign-repo variant=default_variant gpg_key="" repo="repo":
     # Sign
     ostree gpg-sign --repo=${repo} $commit {{gpg_key}} --gpg-homedir=/home/$REAL_USER/.gnupg/
 
-sign-iso variant=default_variant gpg_key="":
+sign-iso gpg_key="":
     #!/bin/bash
     set -euxo pipefail
 
@@ -96,8 +105,12 @@ sign-iso variant=default_variant gpg_key="":
     for i in $(find . -maxdepth 1 -type f -name '*.iso' -printf '%f\n')
     do
         RAW_NAME="$(basename $i -s)"
-        rm -rf $RAW_NAME.sig
-        GNUPGHOME=/home/$REAL_USER/.gnupg/ gpg --output $RAW_NAME.sig --sign --local-user $REAL_USER --default-key {{gpg_key}} $i
+
+        rm -rf $RAW_NAME.sha512
+        sha512sum $i > $RAW_NAME.sha512
+
+        rm -rf $RAW_NAME.sha512.sig
+        GNUPGHOME=/home/$REAL_USER/.gnupg/ gpg --output $RAW_NAME.sha512.sig --sign --local-user $REAL_USER --default-key {{gpg_key}} $RAW_NAME.sha512
     done
     popd
 
@@ -106,7 +119,7 @@ sign-all variant=default_variant gpg_key="":
     set -euxo pipefail
 
     just sign-repo {{variant}} {{gpg_key}}
-    just sign-iso {{variant}} {{gpg_key}}
+    just sign-iso {{gpg_key}}
 
 export-release variant=default_variant gpg_key="":
     #!/bin/bash
@@ -116,7 +129,7 @@ export-release variant=default_variant gpg_key="":
     ref="$(rpm-ostree compose tree --print-only --repo=repo fedora-{{variant}}.yaml | jq -r '.ref')"
     version=$(ostree log --repo=repo ${ref} | grep '^Version:' | head -n 1 | sed 's/Version: //g' | tr '[:blank:]' '_')
     output_repo_path="release/${version}"
-    
+
     # Prepare the output directory
     rm -rf ${output_repo_path}*
     mkdir -p ${output_repo_path}
@@ -264,7 +277,7 @@ compose-image variant=default_variant:
             |& tee "logs/${variant}_${version}_${buildid}.${timestamp}.log"
 
 # Last steps from the compose recipe that can easily fail when the sudo timeout is reached
-compose-finalise:
+compose-finalize:
     #!/bin/bash
     set -euxo pipefail
 
@@ -410,7 +423,7 @@ lorax variant=default_variant arch=default_arch:
         --add-template-var=ostree_install_ref=fedora/${version}/${arch}/${variant} \
         --add-template-var=ostree_update_ref=fedora/${version}/${arch}/${variant} \
         ${pwd}/iso/linux
-    
+
     mv iso/linux/images/boot.iso iso/Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso
     just kickstart iso/Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso iso/KS-Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso
     just fix-ownership
