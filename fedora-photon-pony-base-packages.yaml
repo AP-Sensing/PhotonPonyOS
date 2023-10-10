@@ -15,15 +15,8 @@ packages:
   - libsane-hpaio
   - mesa-dri-drivers
   - mesa-libEGL
-  - git
-  - gcc
   - htop
   - btop
-  # Storing the LUKS key inside the TPM
-  - clevis
-  - clevis-luks
-  - clevis-dracut
-  - clevis-systemd
   # So mkhomedir_helper is available
   - pam
   # PhotonPonyOS specific packages
