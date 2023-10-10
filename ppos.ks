@@ -39,7 +39,7 @@ firstboot --disable
 
 # Ask for network configuration
 network  --bootproto=dhcp --device=eno1 --ipv6=auto --activate
-network  --bootproto=static --device=eno2 --gateway=10.0.0.1 --ip=10.0.0.62 --nameserver=10.0.0.1 --netmask=255.255.255.0 --ipv6=auto --no-activate
+network  --bootproto=static --device=eno2 --gateway=192.168.1.3 --ip=192.168.8.49 --nameserver=192.168.2.120 --netmask=255.255.248.0 --ipv6=auto --no-activate
 network  --hostname=n62-ppos
 
 # Partition clearing information
