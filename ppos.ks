@@ -47,7 +47,10 @@ network  --hostname=n62-ppos
 ignoredisk --only-use=nvme0n1
 clearpart --all --drives=nvme0n1 --initlabel
 # Disk partitioning information
-part btrfs.2783 --fstype="btrfs" --ondisk=nvme0n1 --size=1906104 --encrypted --passphrase=lol123 --luks-version=luks2
+
+# Do not encrypt for now by default. Ref: https://gitlab.bbn.apsensing.com/infrastructure/ppos/ppos/-/issues/7
+# part btrfs.2783 --fstype="btrfs" --ondisk=nvme0n1 --size=1906104 --encrypted --passphrase=lol123 --luks-version=luks2
+part btrfs.2783 --fstype="btrfs" --ondisk=nvme0n1 --size=1906104
 part /boot/efi --fstype="efi" --ondisk=nvme0n1 --size=600 --fsoptions="umask=0077,shortname=winnt"
 part /boot --fstype="ext4" --ondisk=nvme0n1 --size=1024
 btrfs none --label=n62_ppos --data=single btrfs.2783
