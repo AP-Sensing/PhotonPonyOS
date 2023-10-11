@@ -38,9 +38,9 @@ ostreesetup --osname="ppos" --remote="ppos-compose" --url="file:///ostree/repo" 
 firstboot --disable
 
 # Ask for network configuration
-network  --bootproto=dhcp --device=eno1 --ipv6=auto --activate
-network  --bootproto=static --device=eno2 --gateway=192.168.8.1 --ip=192.168.8.49 --nameserver=192.168.8.1 --netmask=255.255.255.0 --ipv6=auto --no-activate
-network  --hostname=n62-ppos
+network --bootproto=dhcp --device=eno1 --ipv6=auto --activate
+network --bootproto=static --device=eno2 --gateway=192.168.8.1 --ip=192.168.8.49 --nameserver=192.168.8.1 --netmask=255.255.255.0 --ipv6=auto --no-activate
+network --hostname=n62-ppos
 
 # Partition clearing information
 # Only touch nvme0n1. But there we clear all partitions
@@ -49,6 +49,7 @@ clearpart --all --drives=nvme0n1 --initlabel
 # Disk partitioning information
 
 # Do not encrypt for now by default. Ref: https://gitlab.bbn.apsensing.com/infrastructure/ppos/ppos/-/issues/7
+# The default password is "lol123". It will be changed to a random one and the stored inside the TPM during the setup script run by the production before the device goes to the customer.
 # part btrfs.2783 --fstype="btrfs" --ondisk=nvme0n1 --size=1906104 --encrypted --passphrase=lol123 --luks-version=luks2
 part btrfs.2783 --fstype="btrfs" --ondisk=nvme0n1 --size=1906104
 part /boot/efi --fstype="efi" --ondisk=nvme0n1 --size=600 --fsoptions="umask=0077,shortname=winnt"
@@ -67,6 +68,7 @@ timezone Etc/UCT --utc
 
 #Root password
 rootpw --lock
+# The default password is "test". It will be changed to a random one during the setup script run by the production before the device goes to the customer.
 user --groups=wheel --name=dts_admin --password=$y$j9T$8nlLGisEdGIKHytfpkv0pB90$YBch7wZNtEkG57IIv/nhzUqgodILbiYbMFtySk26ay1 --iscrypted --gecos="dts_admin"
 
 # Make sure SELinux is enabled
