@@ -4,13 +4,12 @@
 
 # Set a default for some recipes
 default_variant := "photon-pony"
-# Default to unified compose now that it works for Silverblue & Kinoite builds
-unified_core := "true"
-# unified_core := "false"
-# force_nocache := "true"
-force_nocache := "false"
+force_nocache := "true"
+# Enable to sign the efi boot files, kernel and kernel modules for secure boot with a provided key
+secure_boot := "true"
 # The default architecture we are building for. Set by default to the system architecture
 default_arch := "$(arch)"
+default_secure_boot_db_sign_key_dir := "secureBoot"
 
 # Default is to compose PhotonPonyOS and PhotonPonyOSBase
 all gpg_key="":
@@ -147,6 +146,60 @@ export-release variant=default_variant gpg_key="":
     zip -r -q -9 ${version}.zip ${version}
     popd
 
+compose-post-script secure_boot_db_sign_key_dir=default_secure_boot_db_sign_key_dir:
+    #!/bin/bash
+    set -euxo pipefail
+
+    # Based on: https://sysguides.com/fedora-uefi-secure-boot-with-custom-keys/
+    baseDir="tmp/rootfs"
+    keyBasePath="$(pwd)/secureBoot"
+
+    # Copy the public key to the new root file system
+    mkdir -p ${baseDir}/usr/etc/pki/aps/secureBoot/{auth,cfg,esl,ms,oem} || exit 1
+    chmod -R 700 ${baseDir}/usr/etc/pki/aps || exit 1
+
+    cp secureBoot/db.key ${baseDir}/usr/etc/pki/aps/secureBoot || exit 1
+    chmod 600 ${baseDir}/usr/etc/pki/aps/secureBoot/db.key
+    cp secureBoot/db.pem ${baseDir}/usr/etc/pki/aps/secureBoot || exit 1
+    chmod 600 ${baseDir}/usr/etc/pki/aps/secureBoot/db.pem
+    cp secureBoot/PK.cfg ${baseDir}/usr/etc/pki/aps/secureBoot/cfg || exit 1
+    chmod 600 ${baseDir}/usr/etc/pki/aps/secureBoot/cfg/PK.cfg
+
+    # Sign everything
+    chroot ${baseDir} /bin/bash -x << 'EOF'
+    keyBasePath="/usr/etc/pki/aps/secureBoot"
+
+    # Sign the kernel
+    find /usr/lib/modules -name vmlinuz* | sort | uniq | while read -r path; do
+        fullPath=$(realpath ${path})
+        echo "Signing kernel at: ${fullPath}"
+        sbsign ${fullPath} --key ${keyBasePath}/db.key --cert ${keyBasePath}/db.pem --output ${fullPath} || exit 1
+    done
+    popd
+
+    # Sign the kernel modules
+    # We expect there to be only a single kernel(-devel)
+    kmodPath=$(find /usr/lib/modules -name spcm4.ko.xz)
+    kmodPathDir=$(dirname ${kmodPath})
+    signFilePath=$(find /usr/src/kernels -name sign-file)
+
+    pushd ${kmodPathDir}
+    unxz -f spcm4.ko.xz || exit 1
+    ${signFilePath} sha256 ${keyBasePath}/db.key ${keyBasePath}/db.pem spcm4.ko || exit 1
+    xz spcm4.ko spcm4.ko.xz || true
+    popd
+
+    # Sign all boot related efi binaries
+    baseEfiPath="/usr/lib/ostree-boot/efi/EFI/fedora"
+    find ${baseEfiPath} -name *.efi | while read -r path; do
+        echo "Signing: ${path}"
+        pesign -r -u0 -i ${path} -o ${path}.empty || exit 1
+        sbsign ${path}.empty --key ${keyBasePath}/db.key --cert ${keyBasePath}/db.pem --output ${path} || exit 1
+        rm -f ${path}.empty
+    done
+    EOF
+    rm -f ${baseDir}/usr/etc/pki/aps/secureBoot/db.key || exit 1
+
 # Compose a specific variant of Fedora (defaults to Silverblue)
 compose variant=default_variant:
     #!/bin/bash
@@ -187,34 +240,27 @@ compose variant=default_variant:
     echo "Composing ${variant_pretty} ${version}.${buildid} ..."
     # To debug with gdb, use: gdb --args ...
 
-    ARGS="--repo=repo --layer-repo=repo --cachedir=cache"
-    if [[ {{unified_core}} == "true" ]]; then
-        ARGS+=" --unified-core"
-    else
-        ARGS+=" --workdir=tmp"
-        rm -rf ./tmp
-        mkdir -p tmp
-        export RPM_OSTREE_I_KNOW_NON_UNIFIED_CORE_IS_DEPRECATED=1
-        # TODO: Check if this is still needed
-        export SYSTEMD_OFFLINE=1
-    fi
+    INSTALL_ARGS="--repo=repo --cachedir=cache --unified-core"
+    POSTPROCESS_ARGS="--unified-core"
+    COMMIT_ARGS="--repo=repo --unified-core"
+
     if [[ {{force_nocache}} == "true" ]]; then
-        ARGS+=" --force-nocache"
+        INSTALL_ARGS+=" --force-nocache"
     fi
+    
     CMD="rpm-ostree"
     if [[ ${EUID} -ne 0 ]]; then
         SUDO="sudo rpm-ostree"
     fi
 
-    ${CMD} compose tree ${ARGS} \
-        --add-metadata-string="version=${variant_pretty} ${version}.${buildid}" \
-        "fedora-${variant}.yaml" \
-            |& tee "logs/${variant}_${version}_${buildid}.${timestamp}.log"
-
+    rm -rf tmp
+    LOG_FILE="logs/${variant}_${version}_${buildid}.${timestamp}.log"
+    ${CMD} compose install ${INSTALL_ARGS} "fedora-${variant}.yaml" tmp |& tee ${LOG_FILE}
+    just compose-post-script # Sign the kernel, bootloader and kernel modules
+    ${CMD} compose postprocess ${POSTPROCESS_ARGS} tmp/rootfs "fedora-${variant}.yaml" |& tee ${LOG_FILE}
+    ${CMD} compose commit ${COMMIT_ARGS} --add-metadata-string="version=${variant_pretty} ${version}.${buildid}" "fedora-${variant}.yaml" tmp/rootfs |& tee ${LOG_FILE}
+    
     if [[ ${EUID} -ne 0 ]]; then
-        if [[ {{unified_core}} == "false" ]]; then
-            sudo chown --recursive "$(id --user --name):$(id --group --name)" tmp
-        fi
         sudo chown --recursive "$(id --user --name):$(id --group --name)" repo cache
     fi
 
@@ -274,7 +320,7 @@ compose-image variant=default_variant:
          --label="quay.expires-after=4w" \
         "fedora-${variant}.yaml" \
         "fedora-${variant}.ociarchive" \
-            |& tee "logs/${variant}_${version}_${buildid}.${timestamp}.log"
+           |& tee "logs/${variant}_${version}_${buildid}.${timestamp}.log"
 
 # Last steps from the compose recipe that can easily fail when the sudo timeout is reached
 compose-finalize:
@@ -590,4 +636,4 @@ fix-ownership:
     set -euxo pipefail
 
     if [ $SUDO_USER ]; then user="$SUDO_USER"; else user="$(whoami)"; fi
-    chown -R ${user}:${user} .
+    chown -R ${user}:${user} iso release repo
