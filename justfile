@@ -260,12 +260,7 @@ compose variant=default_variant:
     ${CMD} compose postprocess ${POSTPROCESS_ARGS} tmp/rootfs "fedora-${variant}.yaml" |& tee ${LOG_FILE}
     ${CMD} compose commit ${COMMIT_ARGS} --add-metadata-string="version=${variant_pretty} ${version}.${buildid}" "fedora-${variant}.yaml" tmp/rootfs |& tee ${LOG_FILE}
     
-    if [[ ${EUID} -ne 0 ]]; then
-        sudo chown --recursive "$(id --user --name):$(id --group --name)" repo cache
-    fi
-
-    ostree summary --repo=repo --update
-    just fix-ownership
+    just compose-finalize
 
 # Compose an OCI image
 compose-image variant=default_variant:
