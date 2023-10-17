@@ -1,4 +1,4 @@
-# Treefile documentation: https://rpm-ostree.readthedocs.io/en/stable/manual/treefile/
+# Treefile documentation: https://coreos.github.io/rpm-ostree/treefile/
 
 include: fedora-photon-pony-base-packages.yaml
 ref: fedora/38/${basearch}/photon-pony-base
