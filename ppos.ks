@@ -10,6 +10,11 @@ cp /etc/skel/.bash* /root
 # Allow adding users to the dialout group later on
 # Ref: https://docs.fedoraproject.org/en-US/fedora-silverblue/troubleshooting/#_unable_to_add_user_to_group
 grep -E '^dialout:' /usr/lib/group >> /etc/group
+
+# Work around for the dts user home not being generated
+mkhomedir_helper dts
+# Prevent others from seeing what is inside the individual home directories
+chmod 700 /home/*
 %end
 
 # Not supported with rpm-ostree
@@ -19,6 +24,7 @@ grep -E '^dialout:' /usr/lib/group >> /etc/group
 
 # Keyboard layouts
 keyboard --vckeymap=de --xlayouts='de'
+
 # System language
 lang en_US.UTF-8
 
@@ -26,33 +32,46 @@ lang en_US.UTF-8
 firewall --enabled --ssh --port=80:tcp,443:tcp
 
 # OSTree setup
-ostreesetup --osname="ppos" --remote="ppos-compose" --url="file:///ostree/repo" --ref="fedora/38/x86_64/photon-pony" --nogpg
+ostreesetup --osname="ppos" --remote="ppos" --url="file:///ostree/repo" --ref="fedora/38/x86_64/photon-pony" --nogpg
 
 # Disable the Setup Agent on first boot
 firstboot --disable
 
 # Ask for network configuration
-# network --device=eth0 --bootproto=query
+network --bootproto=dhcp --device=eno1 --ipv6=auto --activate
+network --bootproto=static --device=eno2 --gateway=192.168.8.1 --ip=192.168.8.49 --nameserver=192.168.8.1 --netmask=255.255.255.0 --ipv6=auto --no-activate
+network --hostname=n62-ppos
 
 # Partition clearing information
-ignoredisk --only-use=vda
-clearpart --none --initlabel
-part /boot/efi --fstype="efi" --ondisk=vda --size=600 --fsoptions="umask=0077,shortname=winnt"
-part /boot --fstype="ext4" --ondisk=vda --size=1024
-part btrfs.114 --fstype="btrfs" --ondisk=vda --grow --maxsize=10000000000000 # Some really large value since we want the partition to take all left over space.
-btrfs none --label=photonponyos --data=single btrfs.114
-btrfs / --subvol --name=root LABEL=photonponyos
-btrfs /home --subvol --name=home LABEL=photonponyos
-btrfs /opt/webcache --subvol --name=opt_webcache LABEL=photonponyos
-btrfs /opt --subvol --name=opt LABEL=photonponyos
-btrfs /usr/local --subvol --name=usr_local LABEL=photonponyos
+# Only touch nvme0n1. But there we clear all partitions
+ignoredisk --only-use=nvme0n1
+clearpart --all --drives=nvme0n1 --initlabel
+# Disk partitioning information
+
+# The default password is "lol123". It will be changed to a random one and the stored inside the TPM during the setup script run by the production before the device goes to the customer.
+part btrfs.2783 --fstype="btrfs" --ondisk=nvme0n1 --size=1906104 --encrypted --passphrase=lol123 --luks-version=luks2
+# part btrfs.2783 --fstype="btrfs" --ondisk=nvme0n1 --size=1906104
+part /boot/efi --fstype="efi" --ondisk=nvme0n1 --size=600 --fsoptions="umask=0077,shortname=winnt"
+part /boot --fstype="ext4" --ondisk=nvme0n1 --size=1024
+btrfs none --label=n62_ppos --data=single btrfs.2783
+btrfs /opt/webcache --subvol --name=opt_webcache LABEL=n62_ppos
+btrfs / --subvol --name=root LABEL=n62_ppos
+btrfs /home --subvol --name=home LABEL=n62_ppos
+btrfs /opt --subvol --name=opt LABEL=n62_ppos
+btrfs /opt/webcache --subvol --name=opt_webcache LABEL=n62_ppos
+btrfs /var/lib/aps/dts --subvol --name=var_lib_aps_dts LABEL=n62_ppos
+btrfs /usr/local --subvol --name=usr_local LABEL=n62_ppos
 
 # System timezone
-timezone Europe/Berlin --utc
+timezone Etc/UCT --utc
 
 #Root password
 rootpw --lock
-user --groups=wheel --name=fabian --password=$y$j9T$0EF1wDrjYvNDtiG1vc8AKH4e$8lIjOhWZlgHy/7jZtksK9dYxXUECxWDRP6ZpJg2BtpC --iscrypted --gecos="fabian"
+# The default password is "test". It will be changed to a random one during the setup script run by the production before the device goes to the customer.
+user --groups=wheel --name=dts_admin --password=$y$j9T$8nlLGisEdGIKHytfpkv0pB90$YBch7wZNtEkG57IIv/nhzUqgodILbiYbMFtySk26ay1 --iscrypted --gecos="dts_admin"
 
 # Make sure SELinux is enabled
 selinux --enforcing
+
+# Enable SSH by default so we can execute the first start wizard
+services --enabled sshd.service

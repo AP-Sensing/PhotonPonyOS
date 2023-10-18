@@ -1,0 +1,34 @@
+include: fedora-common-ostree.yaml
+packages:
+  - fedora-release-silverblue
+  - gvfs-afc
+  - gvfs-afp
+  - gvfs-archive
+  - gvfs-fuse
+  - gvfs-goa
+  - gvfs-gphoto2
+  - gvfs-mtp
+  - gvfs-smb
+  - libcanberra-gtk3
+  - libproxy-duktape
+  - librsvg2
+  - libsane-hpaio
+  - mesa-dri-drivers
+  - mesa-libEGL
+  - htop
+  - btop
+  # So mkhomedir_helper is available
+  - pam
+  # PhotonPonyOS specific packages
+  - ppos-repos
+  - ppos-repos-ostree
+  - aps-root-cert
+  - dts-n62-issue-msg
+
+repos:
+  - fedora-38
+  - fedora-38-updates
+  - ppos-38
+  - ppos-noarch-38
+
+documentation: false
