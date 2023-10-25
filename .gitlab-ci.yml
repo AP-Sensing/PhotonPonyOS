@@ -36,7 +36,8 @@ compose-build:
   stage: compose
   script:
     - sudo just compose photon-pony
-  needs: download-requirements
+  needs:
+    - download-requirements
 
 ######################################
 # Lorax Stage
@@ -45,7 +46,8 @@ lorax-build:
   extends: .docker_image_template
   stage: lorax
   script: sudo just lorax photon-pony
-  needs: compose-build
+  needs: 
+    - compose-build
 
 ######################################
 # Artefacts Stage
@@ -57,4 +59,5 @@ upload-artifacts:
     - iso/Fedora*
     - iso/KS-Fedora*
 
-  needs: lorax-build
+  needs:
+    - lorax-build
