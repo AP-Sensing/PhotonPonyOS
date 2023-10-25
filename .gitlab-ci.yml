@@ -1,0 +1,60 @@
+######################################
+# Templates
+######################################
+.docker_image_template:
+  image:
+    name: fedora:latest
+    pull_policy: always
+  tags:
+    - docker
+    - photon
+
+
+######################################
+# Stages
+######################################
+stages:
+  - Dependencie Stage
+  - Compose Stage
+  - Lorax Stage
+  - Artifacts Stage
+
+######################################
+# Dependencie Stage
+######################################
+
+download-requirements: 
+  extends: .docker_image_template
+  stage: dependencies
+  script: sudo dnf install just ostree rpm-ostree lorax
+
+######################################
+# Compose Stage
+######################################
+compose-build:
+  extends: .docker_image_template
+  stage: compose
+  script:
+    - sudo just compose photon-pony
+  needs: download-requirements
+
+######################################
+# Lorax Stage
+######################################
+lorax-build:
+  extends: .docker_image_template
+  stage: lorax
+  script: sudo just lorax photon-pony
+  needs: compose-build
+
+######################################
+# Artefacts Stage
+######################################
+upload-artifacts:
+  extends: .docker_image_template
+  stage: Artifacts
+  artifacts:
+    - iso/Fedora*
+    - iso/KS-Fedora*
+
+  needs: lorax-build
