@@ -59,6 +59,6 @@ upload-iso:
     paths:
       - iso/Fedora*
       - iso/KS-Fedora*
-
-  needs:
+  needs: 
     - lorax-build
+
