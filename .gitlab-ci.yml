@@ -17,7 +17,7 @@ stages:
   - Dependencie Stage
   - Compose Stage
   - Lorax Stage
-  - Artifacts Stage
+  - Upload Stage
 
 ######################################
 # Dependencie Stage
@@ -25,7 +25,7 @@ stages:
 
 download-requirements: 
   extends: .docker_image_template
-  stage: dependencies
+  stage: Dependencie Stage
   script: sudo dnf install just ostree rpm-ostree lorax
 
 ######################################
@@ -33,7 +33,7 @@ download-requirements:
 ######################################
 compose-build:
   extends: .docker_image_template
-  stage: compose
+  stage: Compose Stage
   script:
     - sudo just compose photon-pony
   needs:
@@ -44,7 +44,7 @@ compose-build:
 ######################################
 lorax-build:
   extends: .docker_image_template
-  stage: lorax
+  stage: Lorax Stage
   script: sudo just lorax photon-pony
   needs: 
     - compose-build
@@ -52,9 +52,9 @@ lorax-build:
 ######################################
 # Artefacts Stage
 ######################################
-upload-artifacts:
+upload-iso:
   extends: .docker_image_template
-  stage: Artifacts
+  stage: Upload Stage Stage
   artifacts:
     paths:
       - iso/Fedora*
