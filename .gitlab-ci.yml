@@ -56,8 +56,9 @@ upload-artifacts:
   extends: .docker_image_template
   stage: Artifacts
   artifacts:
-    - iso/Fedora*
-    - iso/KS-Fedora*
+    paths:
+      - iso/Fedora*
+      - iso/KS-Fedora*
 
   needs:
     - lorax-build
