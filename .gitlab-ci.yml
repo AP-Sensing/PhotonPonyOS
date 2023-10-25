@@ -50,11 +50,11 @@ lorax-build:
     - compose-build
 
 ######################################
-# Artefacts Stage
+# Upload Stage
 ######################################
 upload-iso:
   extends: .docker_image_template
-  stage: Upload Stage Stage
+  stage: Upload Stage
   artifacts:
     paths:
       - iso/Fedora*
