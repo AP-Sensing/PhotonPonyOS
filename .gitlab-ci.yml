@@ -3,8 +3,8 @@
 ######################################
 .docker_image_template:
   image:
-  name: fedora:latest
-  pull_policy: always
+    name: fedora:latest
+    pull_policy: always
   tags:
     - docker
     - photon
@@ -15,9 +15,9 @@
 ######################################
 stages:
   - Dependencie Stage
-  #- Compose Stage
-  #- Lorax Stage
-  #- Upload Stage
+  - Compose Stage
+  - Lorax Stage
+  - Upload Stage
 
 ######################################
 # Dependencie Stage
@@ -31,10 +31,6 @@ download-requirements:
     - pip install pyyaml
     - sudo /usr/bin/just compose photon-pony
     - sudo /usr/bin/just lorax photon-pony
-  artifacts:
-    paths:
-      - iso/Fedora*
-      - iso/KS-Fedora*
 
 ######################################
 # Compose Stage
