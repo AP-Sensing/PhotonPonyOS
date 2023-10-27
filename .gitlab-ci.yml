@@ -31,6 +31,10 @@ download-requirements:
     - pip install pyyaml
     - sudo /usr/bin/just compose photon-pony
     - sudo /usr/bin/just lorax photon-pony
+  artifacts:
+    paths:
+      - iso/Fedora*
+      - iso/KS-Fedora*
 
 ######################################
 # Compose Stage
