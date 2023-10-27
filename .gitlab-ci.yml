@@ -35,7 +35,7 @@ compose-build:
   extends: .docker_image_template
   stage: Compose Stage
   script:
-    - sudo just compose photon-pony
+    - sudo /usr/bin/just compose photon-pony
   needs:
     - download-requirements
 
