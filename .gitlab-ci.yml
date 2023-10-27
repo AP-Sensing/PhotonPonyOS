@@ -26,8 +26,9 @@ stages:
 download-requirements: 
   extends: .docker_image_template
   stage: Dependencie Stage
-  script: 
-    - sudo dnf install -y just ostree rpm-ostree lorax
+  script:
+    - sudo dnf install -y just ostree rpm-ostree lorax pip jq
+    - pip install pyyaml
     - sudo /usr/bin/just compose photon-pony
     - sudo /usr/bin/just lorax photon-pony
 
