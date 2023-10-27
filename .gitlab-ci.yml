@@ -45,7 +45,7 @@ compose-build:
 lorax-build:
   extends: .docker_image_template
   stage: Lorax Stage
-  script: sudo just lorax photon-pony
+  script: sudo /usr/bin/just lorax photon-pony
   needs: 
     - compose-build
 
