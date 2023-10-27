@@ -15,9 +15,9 @@
 ######################################
 stages:
   - Dependencie Stage
-  - Compose Stage
-  - Lorax Stage
-  - Upload Stage
+  #- Compose Stage
+  #- Lorax Stage
+  #- Upload Stage
 
 ######################################
 # Dependencie Stage
@@ -26,28 +26,31 @@ stages:
 download-requirements: 
   extends: .docker_image_template
   stage: Dependencie Stage
-  script: sudo dnf install -y just ostree rpm-ostree lorax
+  script: 
+    - sudo dnf install -y just ostree rpm-ostree lorax
+    - sudo /usr/bin/just compose photon-pony
+    - sudo /usr/bin/just lorax photon-pony
 
 ######################################
 # Compose Stage
 ######################################
-compose-build:
-  extends: .docker_image_template
-  stage: Compose Stage
-  script:
-    - sudo /usr/bin/just compose photon-pony
-  needs:
-    - download-requirements
+#compose-build:
+ # extends: .docker_image_template
+  #stage: Compose Stage
+  #script:
+  #  - sudo /usr/bin/just compose photon-pony
+  #needs:
+   # - download-requirements
 
 ######################################
 # Lorax Stage
 ######################################
-lorax-build:
-  extends: .docker_image_template
-  stage: Lorax Stage
-  script: sudo /usr/bin/just lorax photon-pony
-  needs: 
-    - compose-build
+#lorax-build:
+ # extends: .docker_image_template
+ # stage: Lorax Stage
+  #script: sudo /usr/bin/just lorax photon-pony
+  #needs: 
+   # - compose-build
 
 ######################################
 # Upload Stage
