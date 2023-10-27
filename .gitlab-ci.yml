@@ -2,19 +2,19 @@
 # Templates
 ######################################
 .docker_image_template:
-  image:
-    name: fedora:latest
-    pull_policy: always
+ image:
+  name: fedora:latest
+  pull_policy: always
   tags:
-    - docker
-    - photon
+   - docker
+   - photon
 
 
 ######################################
 # Stages
 ######################################
 stages:
-  - Dependencie Stage
+ - Dependencie Stage
   #- Compose Stage
   #- Lorax Stage
   #- Upload Stage
@@ -27,10 +27,10 @@ download-requirements:
   extends: .docker_image_template
   stage: Dependencie Stage
   script:
-    - sudo dnf install -y just ostree rpm-ostree lorax pip jq
-    - pip install pyyaml
-    - sudo /usr/bin/just compose photon-pony
-    - sudo /usr/bin/just lorax photon-pony
+   - sudo dnf install -y just ostree rpm-ostree lorax pip jq
+   - pip install pyyaml
+   - sudo /usr/bin/just compose photon-pony
+   - sudo /usr/bin/just lorax photon-pony
 
 ######################################
 # Compose Stage
