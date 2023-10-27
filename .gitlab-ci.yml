@@ -52,13 +52,13 @@ lorax-build:
 ######################################
 # Upload Stage
 ######################################
-upload-iso:
-  extends: .docker_image_template
-  stage: Upload Stage
-  artifacts:
-    paths:
-      - iso/Fedora*
-      - iso/KS-Fedora*
-  needs: 
-    - lorax-build
+#upload-iso:
+ # extends: .docker_image_template
+  #stage: Upload Stage
+  #artifacts:
+   # paths:
+    #  - iso/Fedora*
+     # - iso/KS-Fedora*
+  #needs: 
+   # - lorax-build
 
