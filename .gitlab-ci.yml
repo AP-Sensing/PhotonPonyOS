@@ -15,9 +15,6 @@
 ######################################
 stages:
   - Dependencie Stage
-  - Compose Stage
-  - Lorax Stage
-  - Upload Stage
 
 ######################################
 # Dependencie Stage
@@ -31,38 +28,3 @@ download-requirements:
     - pip install pyyaml
     - sudo /usr/bin/just compose photon-pony
     - sudo /usr/bin/just lorax photon-pony
-
-######################################
-# Compose Stage
-######################################
-#compose-build:
- # extends: .docker_image_template
-  #stage: Compose Stage
-  #script:
-  #  - sudo /usr/bin/just compose photon-pony
-  #needs:
-   # - download-requirements
-
-######################################
-# Lorax Stage
-######################################
-#lorax-build:
- # extends: .docker_image_template
- # stage: Lorax Stage
-  #script: sudo /usr/bin/just lorax photon-pony
-  #needs: 
-   # - compose-build
-
-######################################
-# Upload Stage
-######################################
-#upload-iso:
- # extends: .docker_image_template
-  #stage: Upload Stage
-  #artifacts:
-   # paths:
-    #  - iso/Fedora*
-     # - iso/KS-Fedora*
-  #needs: 
-   # - lorax-build
-
