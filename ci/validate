@@ -26,7 +26,7 @@ for root, dirs, files, rootfd in os.fwalk('.'):
         if d in dirs:
             dirs.remove(d)
     for name in files:
-        if name == ".zuul.yaml":
+        if name == ".zuul.yaml" or name == ".gitlab-ci.yml":
             continue
         if name.endswith(('.yaml', '.yml')):
             print("Validating:", name)
