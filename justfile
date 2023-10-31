@@ -193,7 +193,17 @@ compose-post-script secure_boot_db_sign_key_dir=default_secure_boot_db_sign_key_
     baseEfiPath="/usr/lib/ostree-boot/efi/EFI/fedora"
     find ${baseEfiPath} -name *.efi | while read -r path; do
         echo "Signing: ${path}"
-        pesign -r -u0 -i ${path} -o ${path}.empty || exit 1
+
+        # Not all efi files are signed. So skip removing signatures for all that are not signed.
+        sigCount=$(pesign -S -i ${path} | grep "Signing time" | wc -l)
+        if [[ ${sigCount} -ne 0 ]]; then
+            echo "Removing existing signature from: ${path}"
+            pesign -r -u0 -i ${path} -o ${path}.empty || exit 1
+        else
+            echo "No need to remove existing signature from '${path}'. There is none. Just copying..."
+            cp ${path} ${path}.empty
+        fi
+        
         sbsign ${path}.empty --key ${keyBasePath}/db.key --cert ${keyBasePath}/db.pem --output ${path} || exit 1
         rm -f ${path}.empty
     done
