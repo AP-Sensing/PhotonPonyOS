@@ -178,16 +178,21 @@ compose-post-script secure_boot_db_sign_key_dir=default_secure_boot_db_sign_key_
     popd
 
     # Sign the kernel modules
-    # We expect there to be only a single kernel(-devel)
-    kmodPath=$(find /usr/lib/modules -name spcm4.ko.xz)
-    kmodPathDir=$(dirname ${kmodPath})
-    signFilePath=$(find /usr/src/kernels -name sign-file)
+    # We expect there to be only a single or no kernel(-devel)
+    kmodCount=$(find /usr/lib/modules -name spcm4.ko.xz | wc -l)
+    if [[ ${kmodCount} -ne 0 ]]; then
+        kmodPath=$(find /usr/lib/modules -name spcm4.ko.xz)
+        kmodPathDir=$(dirname ${kmodPath})
+        signFilePath=$(find /usr/src/kernels -name sign-file)
 
-    pushd ${kmodPathDir}
-    unxz -f spcm4.ko.xz || exit 1
-    ${signFilePath} sha256 ${keyBasePath}/db.key ${keyBasePath}/db.pem spcm4.ko || exit 1
-    xz spcm4.ko spcm4.ko.xz || true
-    popd
+        pushd ${kmodPathDir}
+        unxz -f spcm4.ko.xz || exit 1
+        ${signFilePath} sha256 ${keyBasePath}/db.key ${keyBasePath}/db.pem spcm4.ko || exit 1
+        xz spcm4.ko spcm4.ko.xz || true
+        popd
+    else
+        echo "No spcm4 kernel module found. Skipping kernel module signing."
+    fi
 
     # Sign all boot related efi binaries
     baseEfiPath="/usr/lib/ostree-boot/efi/EFI/fedora"
