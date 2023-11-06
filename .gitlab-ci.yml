@@ -14,7 +14,9 @@ compose-build:
   stage: Compose Stage
   script:
     - whoami
-    - sudo /usr/bin/just compose photon-pony
+    - mkdir secureBoot
+    - cp /keys/db.key
+    - just compose photon-pony
   artifacts:
     paths:
       - "repo/"
