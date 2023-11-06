@@ -15,7 +15,7 @@ compose-build:
   script:
     - whoami
     - mkdir secureBoot
-    - cp /keys/db.key
+    - cp /keys/db.key secureBoot/db.key
     - just compose photon-pony
   artifacts:
     paths:
