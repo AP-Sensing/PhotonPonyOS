@@ -28,14 +28,14 @@ lorax-build:
 ######################################
 # Artifact Stage Stage
 ######################################
-artifact-build:
-  stage: Artifact Stage
-  artifacts:
-    paths:
-      - "iso/Fedora*"
-      - "iso/KS-Fedora*"
-  needs:
-    - lorax-build
+#artifact-build:
+ # stage: Artifact Stage
+  #artifacts:
+   # paths:
+    #  - "iso/Fedora*"
+     # - "iso/KS-Fedora*"
+  #needs:
+   # - lorax-build
 
 
 
