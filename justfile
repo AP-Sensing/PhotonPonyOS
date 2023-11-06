@@ -158,10 +158,6 @@ compose-post-script secure_boot_db_sign_key_dir=default_secure_boot_db_sign_key_
     mkdir -p ${baseDir}/usr/etc/pki/aps/secureBoot/{auth,cfg,esl,ms,oem} || exit 1
     chmod -R 700 ${baseDir}/usr/etc/pki/aps || exit 1
 
-    #copy db.key to secureBooot
-    mkdir secureBoot
-    cp /keys/db.key secureBoot/db.key
-
     cp secureBoot/db.key ${baseDir}/usr/etc/pki/aps/secureBoot || exit 1
     chmod 600 ${baseDir}/usr/etc/pki/aps/secureBoot/db.key
     cp secureBoot/db.pem ${baseDir}/usr/etc/pki/aps/secureBoot || exit 1
