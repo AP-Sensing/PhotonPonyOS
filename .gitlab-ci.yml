@@ -13,7 +13,12 @@ stages:
 compose-build: 
   stage: Compose Stage
   script:
+    - whoami
     - sudo /usr/bin/just compose photon-pony
+  artifacts:
+    paths:
+      - "repo/"
+      - "cache/"
 
 ######################################
 # Lorax Stage
@@ -22,6 +27,10 @@ lorax-build:
   stage: Lorax Stage
   script:
     - sudo /usr/bin/just lorax photon-pony
+  artifacts:
+    paths:
+      - "iso/Fedora*"
+      - "iso/KS-Fedora*"
   needs:
     - compose-build
     
