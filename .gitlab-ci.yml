@@ -5,15 +5,18 @@
 stages:
   - Compose Stage
   - Lorax Stage
-######################################
-# Dependencie Stage
-######################################
 
+######################################
+# Compose Stage
+######################################
 compose-build: 
-  stage: Dependencie Stage
+  stage: Compose Stage
   script:
     - sudo /usr/bin/just compose photon-pony
 
+######################################
+# Lorax Stage
+######################################
 lorax-build:
   stage: Lorax Stage
   script:
