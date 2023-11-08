@@ -158,6 +158,11 @@ compose-post-script secure_boot_db_sign_key_dir=default_secure_boot_db_sign_key_
     mkdir -p ${baseDir}/usr/etc/pki/aps/secureBoot/{auth,cfg,esl,ms,oem} || exit 1
     chmod -R 700 ${baseDir}/usr/etc/pki/aps || exit 1
 
+    # Check if ephermal keys exist if not generate them
+    if [ ! -f secureBoot/db.key ]; then just gen-secureboot-ephemeral-key; fi
+    if [ ! -f secureBoot/db.pem ]; then just gen-secureboot-ephemeral-key; fi
+    if [ ! -f secureBoot/PK.cfg ]; then just gen-secureboot-ephemeral-key; fi
+
     cp secureBoot/db.key ${baseDir}/usr/etc/pki/aps/secureBoot || exit 1
     chmod 600 ${baseDir}/usr/etc/pki/aps/secureBoot/db.key
     cp secureBoot/db.pem ${baseDir}/usr/etc/pki/aps/secureBoot || exit 1
@@ -641,9 +646,69 @@ archive variant=default_variant kind="repo":
     buildah push "${commit}" "docker://${image}:${version}.${buildid}.${git_commit}.${kind}"
     just fix-ownership
 
+create-folders:
+    #!/bin/bash
+    set -euxo pipefail
+
+    mkdir -p iso
+    mkdir -p repo
+    mkdir -p iso
+
 fix-ownership:
     #!/bin/bash
     set -euxo pipefail
 
-    if [ $SUDO_USER ]; then user="$SUDO_USER"; else user="$(whoami)"; fi
+    just create-folders
+
+    if [ "$EUID" -eq 0 ]; then
+        user="root"
+    else
+        if [ $SUDO_USER ]; then user="$SUDO_USER"; else user="$(whoami)"; fi
+    fi
     chown -R ${user}:${user} iso release repo
+
+gen-secureboot-ephemeral-key:
+    #!/bin/bash
+    set -uxo pipefail
+
+    mkdir -p secureBoot/cfg
+    touch secureBoot/cfg/PK.cfg
+    
+    echo "[ req ]
+    default_bits         = 4096
+    encrypt_key          = no
+    string_mask          = utf8only
+    utf8                 = yes
+    prompt               = no
+    distinguished_name   = my_dist_name
+    x509_extensions      = my_x509_exts
+ 
+    [ my_dist_name ]
+    commonName           = APSensing Platform Key
+    emailAddress         = info@apsensing.com
+
+    [ my_x509_exts ]
+    keyUsage             = digitalSignature
+    extendedKeyUsage     = codeSigning
+    basicConstraints     = critical,CA:FALSE
+    subjectKeyIdentifier = hash" > secureBoot/cfg/PK.cfg
+
+    cp PK.cfg secureBoot/cfg/PK.cfg
+
+    openssl req -x509 -sha256 -days 5490 -outform PEM \
+        -config secureBoot/cfg/PK.cfg \
+        -keyout secureBoot/PK.key -out secureBoot/PK.pem
+    cp -v secureBoot/cfg/{PK,KEK}.cfg
+    sed -i 's/Platform Key/Key Exchange Key/g' secureBoot/cfg/KEK.cfg
+    openssl req -x509 -sha256 -days 5490 -outform PEM \
+        -config secureBoot/cfg/KEK.cfg \
+        keyout secureBoot/KEK.key -out secureBoot/KEK.pem
+    
+    cp -v secureBoot/cfg/{PK,db}.cfg
+    sed -i 's/Platform Key/Signature Database/g' secureBoot/cfg/db.cfg
+    openssl req -x509 -sha256 -days 5490 -outform PEM \
+        -config secureBoot/cfg/db.cfg \
+        -keyout secureBoot/db.key -out secureBoot/db.pem
+    openssl x509 -text -noout -inform PEM -in secureBoot/db.pem
+
+    cp secureBoot/cfg/PK.cfg secureBoot/
