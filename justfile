@@ -646,33 +646,29 @@ archive variant=default_variant kind="repo":
     buildah push "${commit}" "docker://${image}:${version}.${buildid}.${git_commit}.${kind}"
     just fix-ownership
 
-create-folders:
-    #!/bin/bash
-    set -euxo pipefail
-
-    mkdir -p iso
-    mkdir -p repo
-    mkdir -p iso
 
 fix-ownership:
     #!/bin/bash
     set -euxo pipefail
-
-    just create-folders
 
     if [ "$EUID" -eq 0 ]; then
         user="root"
     else
         if [ $SUDO_USER ]; then user="$SUDO_USER"; else user="$(whoami)"; fi
     fi
-    chown -R ${user}:${user} iso release repo
+    
+    
+    if [ -d iso ]; then chown -R ${user}:${user} iso; fi
+    if [ -d release ]; then chown -R ${user}:${user} release; fi
+    if [ -d repo ]; then chown -R ${user}:${user} repo; fi
+
 
 gen-secureboot-ephemeral-key:
     #!/bin/bash
     set -uxo pipefail
 
-    mkdir -p secureBoot/cfg
-    touch secureBoot/cfg/PK.cfg
+    mkdir -p secureBoot
+    touch secureBoot/PK.cfg
     
     echo "[ req ]
     default_bits         = 4096
@@ -684,31 +680,24 @@ gen-secureboot-ephemeral-key:
     x509_extensions      = my_x509_exts
  
     [ my_dist_name ]
-    commonName           = APSensing Platform Key
-    emailAddress         = info@apsensing.com
+    commonName           = Ephemeral Platform Key
+    emailAddress         = not-a-vald-production-key@example.com
 
     [ my_x509_exts ]
     keyUsage             = digitalSignature
     extendedKeyUsage     = codeSigning
     basicConstraints     = critical,CA:FALSE
-    subjectKeyIdentifier = hash" > secureBoot/cfg/PK.cfg
+    subjectKeyIdentifier = hash" > secureBoot/PK.cfg
 
-    cp PK.cfg secureBoot/cfg/PK.cfg
 
-    openssl req -x509 -sha256 -days 5490 -outform PEM \
-        -config secureBoot/cfg/PK.cfg \
-        -keyout secureBoot/PK.key -out secureBoot/PK.pem
-    cp -v secureBoot/cfg/{PK,KEK}.cfg
-    sed -i 's/Platform Key/Key Exchange Key/g' secureBoot/cfg/KEK.cfg
-    openssl req -x509 -sha256 -days 5490 -outform PEM \
-        -config secureBoot/cfg/KEK.cfg \
-        keyout secureBoot/KEK.key -out secureBoot/KEK.pem
+
+    openssl req -x509 -sha256 -days 5490 -outform PEM -config secureBoot/PK.cfg -keyout secureBoot/PK.key -out secureBoot/PK.pem
+    cp -v secureBoot/{PK,KEK}.cfg
+    sed -i 's/Platform Key/Key Exchange Key/g' secureBoot/KEK.cfg
+    openssl req -x509 -sha256 -days 5490 -outform PEM -config secureBoot/KEK.cfg keyout secureBoot/KEK.key -out secureBoot/KEK.pem
     
-    cp -v secureBoot/cfg/{PK,db}.cfg
-    sed -i 's/Platform Key/Signature Database/g' secureBoot/cfg/db.cfg
-    openssl req -x509 -sha256 -days 5490 -outform PEM \
-        -config secureBoot/cfg/db.cfg \
-        -keyout secureBoot/db.key -out secureBoot/db.pem
+    cp -v secureBoot/{PK,db}.cfg
+    sed -i 's/Platform Key/Signature Database/g' secureBoot/db.cfg
+    
+    openssl req -x509 -sha256 -days 5490 -outform PEM -config secureBoot/db.cfg -keyout secureBoot/db.key -out secureBoot/db.pem
     openssl x509 -text -noout -inform PEM -in secureBoot/db.pem
-
-    cp secureBoot/cfg/PK.cfg secureBoot/
