@@ -1,0 +1,42 @@
+######################################
+# Stages
+######################################
+stages:
+  - Dependencie Stage
+  - Compose Stage
+  - Lorax Stage
+  - Artifact Stage
+
+######################################
+# Compose Stage
+######################################
+install-dependencies:
+  stage: Dependencie Stage
+  script:
+    - dnf install -y just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git
+    - pip install pyyaml
+compose-build: 
+  stage: Compose Stage
+  script:
+    - just compose photon-pony
+  needs:
+    - install-dependencies
+  artifacts:
+    paths:
+      - "repo/"
+      - "cache/"
+
+######################################
+# Lorax Stage
+######################################
+lorax-build:
+  stage: Lorax Stage
+  script:
+    - sudo /usr/bin/just lorax photon-pony
+  artifacts:
+    paths:
+      - "iso/Fedora*"
+      - "iso/KS-Fedora*"
+  needs:
+    - compose-build
+    
