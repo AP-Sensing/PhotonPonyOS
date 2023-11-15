@@ -15,6 +15,10 @@ install-dependencies:
   script:
     - dnf install -y just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git
     - pip install pyyaml
+  artifacts:
+    paths:
+      - "/bin/*"
+      - "iso/KS-Fedora*"    
 compose-build: 
   stage: Compose Stage
   script:
@@ -39,4 +43,3 @@ lorax-build:
       - "iso/KS-Fedora*"
   needs:
     - compose-build
-    
