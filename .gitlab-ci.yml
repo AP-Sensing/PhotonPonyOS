@@ -8,10 +8,15 @@ stages:
 # Compose Stage
 ######################################
 
+check_if_mounted:
+  stage: Do All
+  script:
+    - ls -a /lib/modules
+
+
 install-dependencies:
   stage: Do All
   script:
-    - ls /lib/modules
     - dnf install -y just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git zstd buildah
     - pip install pyyaml
     - just compose photon-pony
