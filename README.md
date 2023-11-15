@@ -22,3 +22,16 @@ sudo just lorax photon-pony
  
 After successfully building, the image will be located in `iso/linux/images/boot.iso`.
 This image then can be flashed to a USB-stick with for example the [Fedora Media Writer](https://flathub.org/apps/org.fedoraproject.MediaWriter).
+
+
+### Gitlab CI automation
+
+PPOS can be build in a Gitlab-Runner using a Docker-Executor.
+The loop module has to be loaded on the Host of the GitLab-Runner
+```toml
+  [runners.docker]
+    image = "fedora:38"
+    privileged = true
+```
+
+
