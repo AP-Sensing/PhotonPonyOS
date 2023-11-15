@@ -159,9 +159,8 @@ compose-post-script secure_boot_db_sign_key_dir=default_secure_boot_db_sign_key_
     chmod -R 700 ${baseDir}/usr/etc/pki/aps || exit 1
 
     # Check if ephermal keys exist if not generate them
-    if [ ! -f secureBoot/db.key ]; then just gen-secureboot-ephemeral-key; fi
-    if [ ! -f secureBoot/db.pem ]; then just gen-secureboot-ephemeral-key; fi
-    if [ ! -f secureBoot/PK.cfg ]; then just gen-secureboot-ephemeral-key; fi
+    if [ ! -f secureBoot/db.key ] || [ ! -f secureBoot/db.pem ] || [ ! -f secureBoot/PK.cfg ]; then just gen-secureboot-ephemeral-key; fi
+
 
     cp secureBoot/db.key ${baseDir}/usr/etc/pki/aps/secureBoot || exit 1
     chmod 600 ${baseDir}/usr/etc/pki/aps/secureBoot/db.key
