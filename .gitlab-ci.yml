@@ -17,7 +17,7 @@ check_if_mounted:
 install-dependencies:
   stage: Do All
   script:
-    - dnf update
+    - dnf update -y
     - dnf install -y just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git zstd buildah curl
     - pip install pyyaml
     - just compose photon-pony
