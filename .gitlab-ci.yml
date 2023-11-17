@@ -12,6 +12,10 @@ check_if_mounted:
   stage: Do All
   script:
     - ls -a /lib/modules
+check_disk_space:
+  stage: Do All
+  script:
+    - df -h
 
 
 install-dependencies:
