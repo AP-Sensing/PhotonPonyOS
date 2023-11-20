@@ -12,6 +12,7 @@ check_if_mounted:
   stage: Do All
   script:
     - ls -a /lib/modules
+    - ls -a /usr/lib/modules
 check_disk_space:
   stage: Do All
   script:
@@ -22,8 +23,7 @@ install-dependencies:
   stage: Do All
   script:
     - dnf update -y
-    - dnf install -y just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git zstd buildah curl
-    - dnf repoquery --requires akmod-spcm4
+    - dnf install -y just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git zstd buildah curl akmods
     - pip install pyyaml
     - df -h
     - just compose photon-pony
