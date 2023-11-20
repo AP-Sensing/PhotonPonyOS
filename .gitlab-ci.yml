@@ -26,7 +26,7 @@ install-dependencies:
   stage: Do All
   script:
     - dnf update -y
-    - dnf install -y just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git zstd buildah curl akmods bubblewrap libstdc++ kmodtool elfutils-libelf-devel tar gcc
+    - dnf install -y libevent just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git zstd buildah curl akmods bubblewrap libstdc++ kmodtool elfutils-libelf-devel tar gcc
     - pip install pyyaml
     - df -h
     - just compose photon-pony
