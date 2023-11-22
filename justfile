@@ -141,10 +141,11 @@ export-release variant=default_variant gpg_key="":
     just sign-repo {{variant}} {{gpg_key}} ${output_repo_path}
 
     # Compress the result
-    pushd release
+    pushd release/${version}
     # Set to best compression since it does not change anything in the result since most of the parts are already compressed anyway
-    zip -r -q -9 ${version}.zip ${version}
+    zip -r -q -9 ../${version}.zip ./*
     popd
+    rm -rf release/${version}
 
 compose-post-script secure_boot_db_sign_key_dir=default_secure_boot_db_sign_key_dir:
     #!/bin/bash
