@@ -48,11 +48,14 @@ ignoredisk --only-use=nvme0n1
 clearpart --all --drives=nvme0n1 --initlabel
 # Disk partitioning information
 
-# The default password is "lol123". It will be changed to a random one and the stored inside the TPM during the setup script run by the production before the device goes to the customer.
-part btrfs.2783 --fstype="btrfs" --ondisk=nvme0n1 --size=1906104 --encrypted --passphrase=lol123 --luks-version=luks2
-# part btrfs.2783 --fstype="btrfs" --ondisk=nvme0n1 --size=1906104
+# First create the boot and efi partitions so we can later use all the remaining space for the root partition
 part /boot/efi --fstype="efi" --ondisk=nvme0n1 --size=600 --fsoptions="umask=0077,shortname=winnt"
 part /boot --fstype="ext4" --ondisk=nvme0n1 --size=1024
+
+# The default password is "lol123". It will be changed to a random one and the stored inside the TPM during the setup script run by the production before the device goes to the customer.
+part btrfs.2783 --fstype="btrfs" --ondisk=nvme0n1 --grow --encrypted --passphrase=lol123 --luks-version=luks2
+# part btrfs.2783 --fstype="btrfs" --ondisk=nvme0n1 --size=1906104
+
 btrfs none --label=n62_ppos --data=single btrfs.2783
 btrfs /opt/webcache --subvol --name=opt_webcache LABEL=n62_ppos
 btrfs / --subvol --name=root LABEL=n62_ppos
