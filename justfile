@@ -650,12 +650,7 @@ fix-ownership:
     #!/bin/bash
     set -euxo pipefail
 
-    if [ "$EUID" -eq 0 ]; then
-        user="root"
-    else
-        if [ $SUDO_USER ]; then user="$SUDO_USER"; else user="$(whoami)"; fi
-    fi
-    
+    if [ $SUDO_USER ]; then user="$SUDO_USER"; else user="$(whoami)"; fi
     
     if [ -d iso ]; then chown -R ${user}:${user} iso; fi
     if [ -d release ]; then chown -R ${user}:${user} release; fi
