@@ -61,7 +61,6 @@ btrfs /opt/webcache --subvol --name=opt_webcache LABEL=n62_ppos
 btrfs / --subvol --name=root LABEL=n62_ppos
 btrfs /home --subvol --name=home LABEL=n62_ppos
 btrfs /opt --subvol --name=opt LABEL=n62_ppos
-btrfs /opt/webcache --subvol --name=opt_webcache LABEL=n62_ppos
 btrfs /var/lib/aps/dts --subvol --name=var_lib_aps_dts LABEL=n62_ppos
 btrfs /usr/local --subvol --name=usr_local LABEL=n62_ppos
 
