@@ -27,9 +27,15 @@ This image then can be flashed to a USB-stick with for example the [Fedora Media
 ### Gitlab CI automation
 
 PPOS can be build in a Gitlab-Runner using a Docker-Executor.
-The loop module has to be loaded on the Host of the GitLab-Runner
+The loop module has to be loaded on the host of the GitLab-Runner. This can be done via:
+```bash
+sudo modprobe loop
+```
+
+The Gitlab configuration file can be found at /etc/gitlab-runner/config.toml
 ```toml
   [runners.docker]
     image = "fedora:38"
     privileged = true
 ```
+Since building the image requires read/write permissions on mounted devices the docker needs to be privileged.
