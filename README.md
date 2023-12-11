@@ -33,5 +33,3 @@ The loop module has to be loaded on the Host of the GitLab-Runner
     image = "fedora:38"
     privileged = true
 ```
-
-
