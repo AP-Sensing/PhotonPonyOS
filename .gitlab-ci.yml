@@ -21,4 +21,4 @@ build-ppos:
       - "secureBoot/PK_pub.pem"
       - "iso/Fedora*"
       - "iso/KS-Fedora*"
-    expire_in:  1 hour
+    expire_in:  5 hours
