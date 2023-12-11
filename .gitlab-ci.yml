@@ -19,5 +19,6 @@ build-ppos:
   artifacts:
     paths:
       - "secureBoot/PK_pub.pem"
-      #- "iso/Fedora*"
-      #- "iso/KS-Fedora*"
+      - "iso/Fedora*"
+      - "iso/KS-Fedora*"
+    expire_in:  1 hour
