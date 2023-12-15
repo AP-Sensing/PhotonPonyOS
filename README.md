@@ -38,4 +38,4 @@ The Gitlab configuration file can be found at `/etc/gitlab-runner/config.toml`.
     image = "fedora:38"
     privileged = true
 ```
-Since building the image requires read/write permissions on mounted devices the docker needs to be privileged.
+Since building the image requires read/write permissions on mounted devices (e.g. `/dev/loop0`), docker images using it need to be marked as `privileged`.
