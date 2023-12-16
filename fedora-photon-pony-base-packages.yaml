@@ -24,6 +24,7 @@ packages:
   - ppos-repos-ostree
   - aps-root-cert
   - dts-n62-issue-msg
+  - dts-n62-setup
 
 repos:
   - fedora-38
