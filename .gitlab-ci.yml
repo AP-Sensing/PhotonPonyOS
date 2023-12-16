@@ -1,0 +1,24 @@
+######################################
+# Stages
+######################################
+
+stages:
+  - BUILD STAGE
+
+######################################
+# BUILD STAGE
+######################################
+build-ppos:
+  stage: BUILD STAGE
+  script:
+    - dnf install -y just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git kmodtool
+    - pip install pyyaml
+    - just compose photon-pony
+    - just lorax photon-pony
+    - openssl x509 -in secureBoot/PK.pem -pubkey -noout > secureBoot/PK_pub.pem
+  artifacts:
+    paths:
+      - "secureBoot/PK_pub.pem"
+      - "iso/Fedora*"
+      - "iso/KS-Fedora*"
+    expire_in:  5 hours
