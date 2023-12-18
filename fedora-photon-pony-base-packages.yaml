@@ -25,6 +25,8 @@ packages:
   - aps-root-cert
   - dts-n62-issue-msg
   - dts-n62-setup
+  # Install kernel modules inside the base image to avoid issues with layered kernel modules where rebuilding them fails since we are still booted with the old image/kernel-devel packages.
+  - akmod-spcm4
 
 repos:
   - fedora-38
