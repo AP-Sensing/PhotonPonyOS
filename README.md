@@ -1,7 +1,6 @@
 ![PhotonPonyOS](branding/ppos.svg)
 
-A fork of https://gitlab.com/fedora/ostree/ci-test that includes everything related to building our custom [Fedora Silverblue](https://fedoraproject.org/silverblue/) based PhotonPonyOS.
-The instructions are for building the boot iso image that contains the [Anaconda Fedora installer](https://fedoraproject.org/wiki/Anaconda).
+A fork of https://gitlab.com/fedora/ostree/ci-test that includes everything related to building our custom [Fedora Silverblue](https://fedoraproject.org/silverblue/) based PhotonPonyOS (PPOS).
 
 Provides support for building new `ostree` commits and based on those, new `rpm-ostree` OS releases that can be offered as online (via a mirror) or offline (single zip file) update.
 Also supports generating bootable (kickstarted) ISO files using the [Anaconda Fedora installer](https://fedoraproject.org/wiki/Anaconda).
@@ -58,4 +57,34 @@ The GitLab runner configuration is located at: `/etc/gitlab-runner/config.toml`
     image = "fedora:38"
     privileged = true
 ```
-Since building the image requires read/write permissions on mounted devices (e.g. `/dev/loop0`), docker images using it need to be marked as `privileged`.
+
+## Release Naming
+
+The following illustrates the release branch naming further and lists all currently in use branches.
+
+```
+ppos/{n62,n5x}/{default,base}/{prod,staging,dev}/{x86_64,aarch64,...}
+│    │         │              │                  │
+│    │         │              │                  └── The hardware architecture this branch is targeting.
+│    │         │              │
+│    │         │              └── The type of release. 'prod' for a production ready release shipped to customers. Everything is for in-house releases and development builds.
+│    │         │
+│    │         └── The version of the OS defining which features and packages are included.
+│    │
+│    └── The product we are targeting with this OS build.
+│
+└── A fixed prefix to identify PhotonPonyOS
+```
+
+### Active Branches
+
+The following active branches are currently in use and are supported with updates.
+
+#### `/ppos/n62/base/{prod,staging,dev}/x86_64`
+
+Represents the base image without any of the measurement specific software.
+Used during development to more easily allow layering local dev packages onto the base commit.  
+
+#### `/ppos/n62/default/{prod,staging,dev}/x86_64`
+
+Takes `/ppos/n62/base/{prod,staging,dev}/x86_64` as base and extends it with all RPM packages required for a functioning measurement device.
