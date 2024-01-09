@@ -34,8 +34,8 @@ sudo dnf install just ostree rpm-ostree lorax kernel-devel
 ```bash
 git clone https://github.com/AP-Sensing/PhotonPonyOS.git
 cd PhotonPonyOS
-sudo just compose photon-pony
-sudo just lorax photon-pony
+sudo just compose n62-default
+sudo just lorax n62-default
 ```
  
 After successfully building, the image will be located in `iso/linux/images/boot.iso`.

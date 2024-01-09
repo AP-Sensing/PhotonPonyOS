@@ -1,7 +1,7 @@
 # Treefile documentation: https://coreos.github.io/rpm-ostree/treefile/
 
-include: fedora-photon-pony-base-packages.yaml
-ref: fedora/38/${basearch}/photon-pony
+include: ppos-n62-base.yaml
+ref: ppos/n62/default/prod/${basearch}
 rojig:
   name: fedora-photon-pony
   summary: "PhotonPonyOS"

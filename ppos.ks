@@ -32,7 +32,7 @@ lang en_US.UTF-8
 firewall --enabled --ssh --port=80:tcp,443:tcp
 
 # OSTree setup
-ostreesetup --osname="ppos" --remote="ppos" --url="file:///ostree/repo" --ref="fedora/38/x86_64/photon-pony" --nogpg
+ostreesetup --osname="ppos" --remote="ppos" --url="file:///ostree/repo" --ref="/ppos/n62/default/prod/x86_64" --nogpg
 
 # Disable the Setup Agent on first boot
 firstboot --disable

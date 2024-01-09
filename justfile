@@ -3,7 +3,7 @@
 # infrastructure are run in Pungi.
 
 # Set a default for some recipes
-default_variant := "photon-pony"
+default_variant := "n62-default"
 force_nocache := "true"
 # Enable to sign the efi boot files, kernel and kernel modules for secure boot with a provided key
 secure_boot := "true"
@@ -13,21 +13,21 @@ default_secure_boot_db_sign_key_dir := "secureBoot"
 
 # Default is to compose PhotonPonyOS and PhotonPonyOSBase
 all gpg_key="":
-    just compose photon-pony
-    just lorax photon-pony
-    just export-release photon-pony {{gpg_key}}
-    just sign-all photon-pony {{gpg_key}}
+    just compose n62-default
+    just lorax n62-default
+    just export-release n62-default {{gpg_key}}
+    just sign-all n62-default {{gpg_key}}
 
-    just compose photon-pony-base
-    just lorax photon-pony-base
-    just export-release photon-pony-base {{gpg_key}}
-    just sign-all photon-pony-base {{gpg_key}}
+    just compose n62-base
+    just lorax n62-base
+    just export-release n62-base {{gpg_key}}
+    just sign-all n62-base {{gpg_key}}
 
     just fix-ownership
 
 # Basic validation to make sure the manifests are not completely broken
 validate:
-    ./ci/validate
+    ./ci/validate.py
 
 # Sync the manifests with the content of the comps groups
 comps-sync:
@@ -55,11 +55,11 @@ manifest variant=default_variant:
 
     variant={{variant}}
     case "${variant}" in
-        "photon-pony")
-            variant_pretty="PhotonPonyOS"
+        "n62-default")
+            variant_pretty="PhotonPonyOS-N62-Default"
             ;;
-        "photon-pony-base")
-            variant_pretty="PhotonPonyOSBase"
+        "n62-base")
+            variant_pretty="PhotonPonyOS-N62-Base"
             ;;
         "*")
             echo "Unknown variant"
@@ -227,11 +227,11 @@ compose variant=default_variant:
 
     variant={{variant}}
     case "${variant}" in
-        "photon-pony")
-            variant_pretty="PhotonPonyOS"
+        "n62-default")
+            variant_pretty="PhotonPonyOS-N62-Default"
             ;;
-        "photon-pony-base")
-            variant_pretty="PhotonPonyOSBase"
+        "n62-base")
+            variant_pretty="PhotonPonyOS-N62-Base"
             ;;
         "*")
             echo "Unknown variant"
@@ -244,7 +244,7 @@ compose variant=default_variant:
     }
     trap "on_failure" ERR
 
-    ./ci/validate > /dev/null || (echo "Failed manifest validation" && exit 1)
+    ./ci/validate.py || (echo "Failed manifest validation" && exit 1)
 
     just prep
 
@@ -255,7 +255,7 @@ compose variant=default_variant:
     # TODO: Pull latest build for the current release
     # ostree pull ...
 
-    version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."mutate-os-release"')"
+    version="$(rpm-ostree compose tree --print-only --repo=repo ppos-${variant}.yaml | jq -r '."mutate-os-release"')"
 
     echo "Composing ${variant_pretty} ${version}.${buildid} ..."
     # To debug with gdb, use: gdb --args ...
@@ -275,10 +275,10 @@ compose variant=default_variant:
 
     rm -rf tmp
     LOG_FILE="logs/${variant}_${version}_${buildid}.${timestamp}.log"
-    ${CMD} compose install ${INSTALL_ARGS} "fedora-${variant}.yaml" tmp |& tee ${LOG_FILE}
+    ${CMD} compose install ${INSTALL_ARGS} "ppos-${variant}.yaml" tmp |& tee ${LOG_FILE}
     just compose-post-script # Sign the kernel, bootloader and kernel modules
-    ${CMD} compose postprocess ${POSTPROCESS_ARGS} tmp/rootfs "fedora-${variant}.yaml" |& tee ${LOG_FILE}
-    ${CMD} compose commit ${COMMIT_ARGS} --add-metadata-string="version=${variant_pretty} ${version}.${buildid}" "fedora-${variant}.yaml" tmp/rootfs |& tee ${LOG_FILE}
+    ${CMD} compose postprocess ${POSTPROCESS_ARGS} tmp/rootfs "ppos-${variant}.yaml" |& tee ${LOG_FILE}
+    ${CMD} compose commit ${COMMIT_ARGS} --add-metadata-string="version=${variant_pretty} ${version}.${buildid}" "ppos-${variant}.yaml" tmp/rootfs |& tee ${LOG_FILE}
     
     just compose-finalize
 
@@ -289,11 +289,11 @@ compose-image variant=default_variant:
 
     variant={{variant}}
     case "${variant}" in
-        "photon-pony")
-            variant_pretty="PhotonPonyOS"
+        "n62-default")
+            variant_pretty="PhotonPonyOS-N62-Default"
             ;;
-        "photon-pony-base")
-            variant_pretty="PhotonPonyOSBase"
+        "n62-base")
+            variant_pretty="PhotonPonyOS-N62-Base"
             ;;
         "*")
             echo "Unknown variant"
@@ -306,7 +306,7 @@ compose-image variant=default_variant:
     # }
     # trap "on_failure" ERR
 
-    ./ci/validate > /dev/null || (echo "Failed manifest validation" && exit 1)
+    ./ci/validate.py > /dev/null || (echo "Failed manifest validation" && exit 1)
 
     just prep
 
@@ -317,7 +317,7 @@ compose-image variant=default_variant:
     # TODO: Pull latest build for the current release
     # ostree pull ...
 
-    version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."mutate-os-release"')"
+    version="$(rpm-ostree compose tree --print-only --repo=repo ppos-${variant}.yaml | jq -r '."mutate-os-release"')"
 
     echo "Composing ${variant_pretty} ${version}.${buildid} ..."
     # To debug with gdb, use: gdb --args ...
@@ -333,8 +333,8 @@ compose-image variant=default_variant:
 
     ${CMD} compose image ${ARGS} \
          --label="quay.expires-after=4w" \
-        "fedora-${variant}.yaml" \
-        "fedora-${variant}.ociarchive" \
+        "ppos-${variant}.yaml" \
+        "ppos-${variant}.ociarchive" \
            |& tee "logs/${variant}_${version}_${buildid}.${timestamp}.log"
 
 # Last steps from the compose recipe that can easily fail when the sudo timeout is reached
@@ -408,13 +408,13 @@ lorax variant=default_variant arch=default_arch:
     arch={{arch}}
     variant={{variant}}
     case "${variant}" in
-        "photon-pony")
-            variant_pretty="PhotonPonyOS"
-            volid_sub="PPOS"
+        "n62-default")
+            variant_pretty="PhotonPonyOS-N62-Default"
+            volid_sub="PPOS_N62_DEFAULT"
             ;;
-        "photon-pony-base")
-            variant_pretty="PhotonPonyOSBase"
-            volid_sub="PPOSBase"
+        "n62-base")
+            variant_pretty="PhotonPonyOS-N62-Base"
+            volid_sub="PPOS_N62_BASE"
             ;;
         "*")
             echo "Unknown variant"
@@ -439,7 +439,7 @@ lorax variant=default_variant arch=default_arch:
         popd > /dev/null || exit 1
     fi
 
-    version_number="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."mutate-os-release"')"
+    version_number="$(rpm-ostree compose tree --print-only --repo=repo ppos-${variant}.yaml | jq -r '."mutate-os-release"')"
     if [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || [[ -f "fedora-rawhide.repo" ]]; then
         version_pretty="Rawhide"
         version="rawhide"
@@ -500,11 +500,11 @@ upload-container variant=default_variant:
 
     variant={{variant}}
     case "${variant}" in
-        "photon-pony")
-            variant_pretty="PhotonPonyOS"
+        "n62-default")
+            variant_pretty="PhotonPonyOS-N62-Default"
             ;;
-        "photon-pony-base")
-            variant_pretty="PhotonPonyOSBase"
+        "n62-base")
+            variant_pretty="PhotonPonyOS-N62-Base"
             ;;
         "*")
             echo "Unknown variant"
@@ -525,7 +525,7 @@ upload-container variant=default_variant:
     if [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || [[ -f "fedora-rawhide.repo" ]]; then
         version="rawhide"
     else
-        version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."mutate-os-release"')"
+        version="$(rpm-ostree compose tree --print-only --repo=repo ppos-${variant}.yaml | jq -r '."mutate-os-release"')"
     fi
 
     image="quay.io/fedora-ostree-desktops/${variant}"
@@ -546,7 +546,7 @@ upload-container variant=default_variant:
 
     skopeo login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" quay.io
     # Copy fully versioned tag (major version, build date/id, git commit)
-    skopeo copy --retry-times 3 "oci-archive:fedora-${variant}.ociarchive" "docker://${image}:${version}.${buildid}.${git_commit}"
+    skopeo copy --retry-times 3 "oci-archive:ppos-${variant}.ociarchive" "docker://${image}:${version}.${buildid}.${git_commit}"
     # Update "un-versioned" tag (only major version)
     skopeo copy --retry-times 3 "docker://${image}:${version}.${buildid}.${git_commit}" "docker://${image}:${version}"
     if [[ "${variant}" == "kinoite-nightly" ]] || [[ "${variant}" == "kinoite-beta" ]]; then
@@ -570,11 +570,11 @@ archive variant=default_variant kind="repo":
 
     variant={{variant}}
     case "${variant}" in
-        "photon-pony")
-            variant_pretty="PhotonPonyOS"
+        "n62-default")
+            variant_pretty="PhotonPonyOS-N62-Default"
             ;;
-        "photon-pony-base")
-            variant_pretty="PhotonPonyOSBase"
+        "n62-base")
+            variant_pretty="PhotonPonyOS-N62-Base"
             ;;
         "*")
             echo "Unknown variant"
@@ -600,7 +600,7 @@ archive variant=default_variant kind="repo":
     if [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || [[ -f "fedora-rawhide.repo" ]]; then
         version="rawhide"
     else
-        version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${variant}.yaml | jq -r '."mutate-os-release"')"
+        version="$(rpm-ostree compose tree --print-only --repo=repo ppos-${variant}.yaml | jq -r '."mutate-os-release"')"
     fi
 
     if [[ "${kind}" == "repo" ]]; then
