@@ -29,25 +29,6 @@ all gpg_key="":
 validate:
     ./ci/validate.py
 
-# Sync the manifests with the content of the comps groups
-comps-sync:
-    #!/bin/bash
-    set -euxo pipefail
-
-    if [[ ! -d fedora-comps ]]; then
-        git clone https://pagure.io/fedora-comps.git
-    else
-        pushd fedora-comps > /dev/null || exit 1
-        git fetch
-        git reset --hard origin/main
-        popd > /dev/null || exit 1
-    fi
-
-    default_variant={{default_variant}}
-    version="$(rpm-ostree compose tree --print-only --repo=repo ppos-${default_variant}.yaml | jq -r '."automatic-version-prefix"')"
-    ./comps-sync.py --save fedora-comps/comps-f${version}.xml.in
-    just fix-ownership
-
 # Output the processed manifest for a given variant (defaults to Silverblue)
 manifest variant=default_variant:
     #!/bin/bash
@@ -267,61 +248,6 @@ compose variant=default_variant:
     
     just compose-finalize
 
-# Compose an OCI image
-compose-image variant=default_variant:
-    #!/bin/bash
-    set -euxo pipefail
-
-    variant={{variant}}
-    case "${variant}" in
-        "n62-default")
-            variant_pretty="PhotonPonyOS-N62-Default"
-            ;;
-        "n62-base")
-            variant_pretty="PhotonPonyOS-N62-Base"
-            ;;
-        "*")
-            echo "Unknown variant"
-            exit 1
-            ;;
-    esac
-
-    # on_failure() {
-    #     just archive {{variant}} repo
-    # }
-    # trap "on_failure" ERR
-
-    ./ci/validate.py > /dev/null || (echo "Failed manifest validation" && exit 1)
-
-    just prep
-
-    buildid="$(date '+%Y%m%d.0')"
-    timestamp="$(date --iso-8601=sec)"
-    echo "${buildid}" > .buildid
-
-    # TODO: Pull latest build for the current release
-    # ostree pull ...
-
-    version="$(rpm-ostree compose tree --print-only --repo=repo ppos-${variant}.yaml | jq -r '."mutate-os-release"')"
-
-    echo "Composing ${variant_pretty} ${version}.${buildid} ..."
-    # To debug with gdb, use: gdb --args ...
-
-    ARGS="--cachedir=cache --initialize"
-    if [[ {{force_nocache}} == "true" ]]; then
-        ARGS+=" --force-nocache"
-    fi
-    CMD="rpm-ostree"
-    if [[ ${EUID} -ne 0 ]]; then
-        SUDO="sudo rpm-ostree"
-    fi
-
-    ${CMD} compose image ${ARGS} \
-         --label="quay.expires-after=4w" \
-        "ppos-${variant}.yaml" \
-        "ppos-${variant}.ociarchive" \
-           |& tee "logs/${variant}_${version}_${buildid}.${timestamp}.log"
-
 # Last steps from the compose recipe that can easily fail when the sudo timeout is reached
 compose-finalize:
     #!/bin/bash
@@ -340,11 +266,6 @@ log variant=default_variant arch=default_arch:
 # Get the diff between two ostree commits
 diff target origin:
     ostree diff --repo repo --fs-diff {{target}} {{origin}}
-
-# Serve the generated commit for testing
-serve:
-    # See https://github.com/TheWaWaR/simple-http-server
-    simple-http-server --index --ip 192.168.122.1 --port 8000 --silent
 
 # Preparatory steps before starting a compose. Also ensure the ostree repo is initialized
 prep:
@@ -479,159 +400,6 @@ kickstart inputIso outputIso:
     set -euxo pipefail
     mkksiso $(pwd)/ppos.ks {{inputIso}} {{outputIso}}
 
-upload-container variant=default_variant:
-    #!/bin/bash
-    set -euxo pipefail
-
-    variant={{variant}}
-    case "${variant}" in
-        "n62-default")
-            variant_pretty="PhotonPonyOS-N62-Default"
-            ;;
-        "n62-base")
-            variant_pretty="PhotonPonyOS-N62-Base"
-            ;;
-        "*")
-            echo "Unknown variant"
-            exit 1
-            ;;
-    esac
-
-    if [[ -z ${CI_REGISTRY_USER+x} ]] || [[ -z ${CI_REGISTRY_PASSWORD+x} ]]; then
-        echo "Skipping artifact archiving: Not in CI"
-        exit 0
-    fi
-    if [[ "${CI}" != "true" ]]; then
-        echo "Skipping artifact archiving: Not in CI"
-        exit 0
-    fi
-
-    version=""
-    if [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || [[ -f "fedora-rawhide.repo" ]]; then
-        version="rawhide"
-    else
-        version="$(rpm-ostree compose tree --print-only --repo=repo ppos-${variant}.yaml | jq -r '."mutate-os-release"')"
-    fi
-
-    image="quay.io/fedora-ostree-desktops/${variant}"
-    buildid=""
-    if [[ -f ".buildid" ]]; then
-        buildid="$(< .buildid)"
-    else
-        buildid="$(date '+%Y%m%d.0')"
-        echo "${buildid}" > .buildid
-    fi
-
-    git_commit=""
-    if [[ -n "${CI_COMMIT_SHORT_SHA}" ]]; then
-        git_commit="${CI_COMMIT_SHORT_SHA}"
-    else
-        git_commit="$(git rev-parse --short HEAD)"
-    fi
-
-    skopeo login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" quay.io
-    # Copy fully versioned tag (major version, build date/id, git commit)
-    skopeo copy --retry-times 3 "oci-archive:ppos-${variant}.ociarchive" "docker://${image}:${version}.${buildid}.${git_commit}"
-    # Update "un-versioned" tag (only major version)
-    skopeo copy --retry-times 3 "docker://${image}:${version}.${buildid}.${git_commit}" "docker://${image}:${version}"
-    if [[ "${variant}" == "kinoite-nightly" ]] || [[ "${variant}" == "kinoite-beta" ]]; then
-        # Update latest tag for kinoite-nightly only
-        skopeo copy --retry-times 3 "docker://${image}:${version}.${buildid}.${git_commit}" "docker://${image}:latest"
-    fi
-    just fix-ownership
-
-# Make a container image with the artifacts
-archive variant=default_variant kind="repo":
-    #!/bin/bash
-    set -euxo pipefail
-
-    if [[ -z ${CI_REGISTRY_USER+x} ]] || [[ -z ${CI_REGISTRY_PASSWORD+x} ]]; then
-        echo "Skipping artifact archiving: Not in CI"
-        exit 0
-    fi
-    if [[ "${CI}" == "true" ]]; then
-        rm -rf cache
-    fi
-
-    variant={{variant}}
-    case "${variant}" in
-        "n62-default")
-            variant_pretty="PhotonPonyOS-N62-Default"
-            ;;
-        "n62-base")
-            variant_pretty="PhotonPonyOS-N62-Base"
-            ;;
-        "*")
-            echo "Unknown variant"
-            exit 1
-            ;;
-    esac
-
-    kind={{kind}}
-    case "${kind}" in
-        "repo")
-            echo "Archiving repo"
-            ;;
-        "iso")
-            echo "Archiving iso"
-            ;;
-        "*")
-            echo "Unknown kind"
-            exit 1
-            ;;
-    esac
-
-    version=""
-    if [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || [[ -f "fedora-rawhide.repo" ]]; then
-        version="rawhide"
-    else
-        version="$(rpm-ostree compose tree --print-only --repo=repo ppos-${variant}.yaml | jq -r '."mutate-os-release"')"
-    fi
-
-    if [[ "${kind}" == "repo" ]]; then
-        tar --create --file repo.tar.zst --zstd repo
-        if [[ "${CI}" == "true" ]]; then
-            rm -rf repo
-        fi
-    fi
-    if [[ "${kind}" == "iso" ]]; then
-        tar --create --file iso.tar.zst --zstd iso
-        if [[ "${CI}" == "true" ]]; then
-            rm -rf iso
-        fi
-    fi
-
-    container="$(buildah from scratch)"
-    if [[ "${kind}" == "repo" ]]; then
-        buildah copy "${container}" repo.tar.zst /
-    fi
-    if [[ "${kind}" == "iso" ]]; then
-        buildah copy "${container}" iso.tar.zst /
-    fi
-    buildah config --label "quay.expires-after=2w" "${container}"
-    commit="$(buildah commit ${container})"
-
-    image="quay.io/fedora-ostree-desktops/${variant}"
-    buildid=""
-    if [[ -f ".buildid" ]]; then
-        buildid="$(< .buildid)"
-    else
-        buildid="$(date '+%Y%m%d.0')"
-        echo "${buildid}" > .buildid
-    fi
-
-    git_commit=""
-    if [[ -n "${CI_COMMIT_SHORT_SHA}" ]]; then
-        git_commit="${CI_COMMIT_SHORT_SHA}"
-    else
-        git_commit="$(git rev-parse --short HEAD)"
-    fi
-
-    buildah login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" quay.io
-    buildah push "${commit}" "docker://${image}:${version}.${buildid}.${git_commit}.${kind}"
-    just fix-ownership
-
-
 fix-ownership:
     #!/bin/bash
     set -euxo pipefail
@@ -641,7 +409,6 @@ fix-ownership:
     if [ -d iso ]; then chown -R ${user}:${user} iso; fi
     if [ -d release ]; then chown -R ${user}:${user} release; fi
     if [ -d repo ]; then chown -R ${user}:${user} repo; fi
-
 
 gen-secureboot-ephemeral-key:
     #!/bin/bash
