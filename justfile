@@ -44,7 +44,7 @@ comps-sync:
     fi
 
     default_variant={{default_variant}}
-    version="$(rpm-ostree compose tree --print-only --repo=repo fedora-${default_variant}.yaml | jq -r '."automatic-version-prefix"')"
+    version="$(rpm-ostree compose tree --print-only --repo=repo ppos-${default_variant}.yaml | jq -r '."automatic-version-prefix"')"
     ./comps-sync.py --save fedora-comps/comps-f${version}.xml.in
     just fix-ownership
 
@@ -53,21 +53,7 @@ manifest variant=default_variant:
     #!/bin/bash
     set -euxo pipefail
 
-    variant={{variant}}
-    case "${variant}" in
-        "n62-default")
-            variant_pretty="PhotonPonyOS-N62-Default"
-            ;;
-        "n62-base")
-            variant_pretty="PhotonPonyOS-N62-Base"
-            ;;
-        "*")
-            echo "Unknown variant"
-            exit 1
-            ;;
-    esac
-
-    rpm-ostree compose tree --print-only --repo=repo fedora-{{variant}}.yaml
+    rpm-ostree compose tree --print-only --repo=repo ppos-{{variant}}.yaml
     just fix-ownership
 
 sign-repo variant=default_variant gpg_key="" repo="repo":
@@ -79,7 +65,7 @@ sign-repo variant=default_variant gpg_key="" repo="repo":
 
     # Get the latest commit
     repo={{repo}}
-    ref="$(rpm-ostree compose tree --print-only --repo=${repo} fedora-{{variant}}.yaml | jq -r '.ref')"
+    ref="$(rpm-ostree compose tree --print-only --repo=${repo} ppos-{{variant}}.yaml | jq -r '.ref')"
     commits="$(ostree log --repo=${repo} $ref | grep '^commit' | sed 's/commit //g')"
     commitsArr=($commits)
 
@@ -124,8 +110,7 @@ export-release variant=default_variant gpg_key="":
     #!/bin/bash
     set -euxo pipefail
 
-    variant={{variant}}
-    ref="$(rpm-ostree compose tree --print-only --repo=repo fedora-{{variant}}.yaml | jq -r '.ref')"
+    ref="$(rpm-ostree compose tree --print-only --repo=repo ppos-{{variant}}.yaml | jq -r '.ref')"
     version=$(ostree log --repo=repo ${ref} | grep '^Version:' | head -n 1 | sed 's/Version: //g' | tr '[:blank:]' '_')
     output_repo_path="release/${version}"
 
@@ -479,10 +464,10 @@ lorax variant=default_variant arch=default_arch:
         --add-template-var=ostree_install_repo=file://${pwd}/repo \
         --add-template-var=ostree_update_repo=file://${pwd}/repo \
         --add-template-var=ostree_osname=ppos \
-        --add-template-var=ostree_oskey=fedora-${version_number}-primary \
+        --add-template-var=ostree_oskey=ppos-${version_number}-primary \
         --add-template-var=ostree_contenturl=mirrorlist=https://ostree.fedoraproject.org/mirrorlist \
-        --add-template-var=ostree_install_ref=fedora/${version}/${arch}/${variant} \
-        --add-template-var=ostree_update_ref=fedora/${version}/${arch}/${variant} \
+        --add-template-var=ostree_install_ref=ppos/${version}/${arch}/${variant} \
+        --add-template-var=ostree_update_ref=ppos/${version}/${arch}/${variant} \
         ${pwd}/iso/linux
 
     mv iso/linux/images/boot.iso iso/Fedora-${volid_sub}-ostree-${arch}-${version_pretty}-${buildid}.iso
