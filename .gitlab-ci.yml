@@ -13,8 +13,8 @@ build-ppos:
   script:
     - dnf install -y just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git kmodtool
     - pip install pyyaml
-    - just compose photon-pony
-    - just lorax photon-pony
+    - sudo just compose photon-pony
+    - sudo just lorax photon-pony
     - openssl x509 -in secureBoot/PK.pem -pubkey -noout > secureBoot/PK_pub.pem
   artifacts:
     paths:
