@@ -11,8 +11,8 @@ stages:
 build-ppos:
   stage: BUILD STAGE
   script:
-    - dnf install -y just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git kmodtool
-    - pip install pyyaml
+    - sudo dnf install -y just ostree lorax rpm-ostree jq pip selinux-policy selinux-policy-targeted policycoreutils openssl git kmodtool
+    - pip install --user pyyaml
     - sudo just compose photon-pony
     - sudo just lorax photon-pony
     - openssl x509 -in secureBoot/PK.pem -pubkey -noout > secureBoot/PK_pub.pem
